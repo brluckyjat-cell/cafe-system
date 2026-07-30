@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -7,175 +6,303 @@
   <title>Chai Ceremony Cafe - Menu</title>
   <style>
     :root {
-      --primary: #d97706;
-      --primary-hover: #b45309;
-      --bg-body: #f8f9fa;
-      --card-bg: #ffffff;
-      --text-dark: #1f2937;
-      --text-muted: #6b7280;
-      --header-bg: #1c130d;
-      --green-veg: #16a34a;
-      --border-color: #e5e7eb;
+      --bg-main: #0c0a09;
+      --card-bg: #181512;
+      --card-border: #2a241e;
+      --accent-gold: #d4af37;
+      --accent-gold-light: #f3c892;
+      --accent-gold-glow: rgba(212, 175, 55, 0.25);
+      --text-white: #fcfbf9;
+      --text-muted: #a39e93;
+      --green-veg: #22c55e;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Georgia, serif;
       -webkit-tap-highlight-color: transparent;
     }
 
     body {
-      background-color: var(--bg-body);
-      color: var(--text-dark);
-      padding-bottom: 90px;
+      background-color: var(--bg-main);
+      color: var(--text-white);
+      padding-bottom: 95px;
     }
 
-    /* Top Navbar Header */
-    .top-navbar {
-      background: var(--header-bg);
-      color: #fff;
-      padding: 12px 18px;
+    /* Top Sticky Header */
+    .header-bar {
+      background: rgba(12, 10, 9, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 10px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 20;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
     }
 
-    .brand-logo {
+    .brand-group {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
 
-    .brand-logo span {
-      font-size: 22px;
+    .header-logo-img {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: 1.5px solid var(--accent-gold);
+      object-fit: cover;
+      box-shadow: 0 0 10px var(--accent-gold-glow);
     }
 
-    .brand-title h2 {
-      font-size: 16px;
+    .brand-name h2 {
+      font-size: 15px;
       font-weight: 800;
-      color: #fbbf24;
-      line-height: 1.1;
+      color: var(--accent-gold);
+      letter-spacing: 0.5px;
     }
 
-    .brand-title p {
-      font-size: 10px;
-      color: #d1d5db;
-      letter-spacing: 1px;
+    .brand-name p {
+      font-size: 9px;
+      color: var(--text-muted);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
     }
 
     .table-badge {
-      background: var(--primary);
-      color: #fff;
+      background: linear-gradient(135deg, #d4af37 0%, #b58d28 100%);
+      color: #000;
       font-weight: 800;
-      padding: 5px 12px;
+      padding: 6px 14px;
       border-radius: 20px;
       font-size: 12px;
-      box-shadow: 0 2px 6px rgba(217, 119, 6, 0.4);
+      box-shadow: 0 2px 10px rgba(212, 175, 55, 0.3);
     }
 
-    /* Hero Banner */
-    .hero-banner {
-      background: linear-gradient(135deg, #2b1810 0%, #1c130d 100%);
-      color: #fff;
-      padding: 24px 20px;
+    /* Hero Section with Ambient Glow */
+    .hero-container {
       text-align: center;
-      border-bottom-left-radius: 24px;
-      border-bottom-right-radius: 24px;
-      margin-bottom: 15px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      padding: 28px 20px 20px 20px;
+      background: radial-gradient(circle at top, rgba(212, 175, 55, 0.12) 0%, rgba(12, 10, 9, 0) 70%);
+      position: relative;
     }
 
-    .hero-banner h1 {
-      font-size: 26px;
+    .main-logo-hero {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 2px solid var(--accent-gold);
+      box-shadow: 0 0 25px var(--accent-gold-glow);
+      margin-bottom: 12px;
+      animation: pulseGlow 3s infinite alternate;
+    }
+
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 15px rgba(212, 175, 55, 0.2); }
+      100% { box-shadow: 0 0 30px rgba(212, 175, 55, 0.5); }
+    }
+
+    .hero-title {
+      font-size: 22px;
       font-weight: 800;
-      color: #fef3c7;
-      margin-bottom: 4px;
+      color: var(--accent-gold-light);
+      letter-spacing: 0.5px;
     }
 
-    .hero-banner h1 span {
-      color: #fbbf24;
-      font-style: italic;
-    }
-
-    .hero-banner p {
+    .hero-tagline {
       font-size: 12px;
-      color: #e5e7eb;
-      opacity: 0.9;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+      margin-top: 4px;
+      text-transform: uppercase;
     }
 
-    /* Search & Categories */
-    .search-container {
+    /* Interactive Mood Filters */
+    .mood-section {
+      padding: 0 16px 16px 16px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .mood-title {
+      font-size: 12px;
+      color: var(--accent-gold);
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .mood-pills {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .mood-pills::-webkit-scrollbar { display: none; }
+
+    .mood-chip {
+      background: #1f1b16;
+      border: 1px solid #332a22;
+      color: var(--text-white);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .mood-chip.active {
+      background: var(--accent-gold);
+      color: #000;
+      font-weight: 800;
+      border-color: var(--accent-gold);
+    }
+
+    /* Search Bar */
+    .search-box-wrap {
       padding: 0 16px 12px 16px;
       max-width: 600px;
       margin: 0 auto;
     }
 
-    .search-box {
+    .search-input {
       width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: #fff;
       padding: 10px 16px;
       border-radius: 25px;
-      border: 1px solid var(--border-color);
-      background: #ffffff;
       font-size: 13px;
       outline: none;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
     }
 
-    .category-scroll {
-      display: flex;
-      overflow-x: auto;
-      padding: 4px 16px 12px 16px;
-      gap: 8px;
+    .search-input:focus {
+      border-color: var(--accent-gold);
+    }
+
+    /* Bestseller Spotlight Slider */
+    .spotlight-section {
+      padding: 10px 16px 20px 16px;
       max-width: 600px;
       margin: 0 auto;
     }
 
-    .category-scroll::-webkit-scrollbar {
-      display: none;
+    .spotlight-scroll {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding-bottom: 8px;
     }
 
-    .cat-btn {
-      background: #ffffff;
-      color: var(--text-dark);
-      border: 1px solid var(--border-color);
+    .spotlight-scroll::-webkit-scrollbar { display: none; }
+
+    .spotlight-card {
+      min-width: 150px;
+      background: linear-gradient(180deg, #241d17 0%, #181512 100%);
+      border: 1px solid #3d3124;
+      border-radius: 16px;
+      padding: 12px;
+      position: relative;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    }
+
+    .spotlight-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: var(--accent-gold);
+      color: #000;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    .spotlight-img {
+      width: 100%;
+      height: 85px;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+
+    .spotlight-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .spotlight-price {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--accent-gold);
+    }
+
+    /* Category Scroll Bar */
+    .category-bar {
+      display: flex;
+      overflow-x: auto;
+      padding: 10px 16px;
+      gap: 8px;
+      background: #12100e;
+      position: sticky;
+      top: 62px;
+      z-index: 40;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .category-bar::-webkit-scrollbar { display: none; }
+
+    .cat-tab {
+      background: var(--card-bg);
+      color: var(--text-muted);
+      border: 1px solid var(--card-border);
       padding: 7px 15px;
       border-radius: 20px;
       white-space: nowrap;
       font-size: 12px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s ease;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+      transition: all 0.2s;
     }
 
-    .cat-btn.active {
-      background: var(--primary);
-      color: #ffffff;
-      border-color: var(--primary);
-      box-shadow: 0 3px 8px rgba(217, 119, 6, 0.3);
+    .cat-tab.active {
+      background: var(--accent-gold);
+      color: #000;
+      font-weight: 800;
+      border-color: var(--accent-gold);
     }
 
-    /* Menu Container & Grid */
+    /* Main Menu Grid */
     .container {
       max-width: 600px;
       margin: 0 auto;
-      padding: 0 16px;
+      padding: 16px;
     }
 
     .section-title {
       font-size: 16px;
       font-weight: 800;
-      color: var(--text-dark);
-      margin: 16px 0 10px 0;
+      color: var(--accent-gold-light);
+      margin: 18px 0 12px 0;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
+      border-left: 3px solid var(--accent-gold);
+      padding-left: 10px;
     }
 
     .menu-grid {
@@ -186,22 +313,20 @@
 
     .menu-card {
       background: var(--card-bg);
+      border: 1px solid var(--card-border);
       border-radius: 16px;
       overflow: hidden;
-      border: 1px solid var(--border-color);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      transition: transform 0.15s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     }
 
     .card-img-wrap {
       width: 100%;
       height: 110px;
-      background: #f3f4f6;
       position: relative;
-      overflow: hidden;
+      background: #24201c;
     }
 
     .card-img-wrap img {
@@ -210,15 +335,15 @@
       object-fit: cover;
     }
 
-    .veg-badge {
+    .veg-symbol {
       position: absolute;
       top: 8px;
       left: 8px;
-      background: rgba(255, 255, 255, 0.9);
+      background: rgba(0,0,0,0.7);
       width: 16px;
       height: 16px;
       border: 1px solid var(--green-veg);
-      border-radius: 4px;
+      border-radius: 3px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -227,7 +352,7 @@
     .veg-dot {
       width: 6px;
       height: 6px;
-      background: var(--green-veg);
+      background-color: var(--green-veg);
       border-radius: 50%;
     }
 
@@ -239,70 +364,63 @@
       justify-content: space-between;
     }
 
-    .item-title {
+    .item-name {
       font-size: 13px;
       font-weight: 700;
-      color: var(--text-dark);
-      line-height: 1.2;
-      margin-bottom: 4px;
+      color: #fff;
+      line-height: 1.3;
+      margin-bottom: 6px;
     }
 
     .variant-select {
       width: 100%;
-      background: #f9fafb;
-      color: var(--text-dark);
-      border: 1px solid #d1d5db;
-      padding: 4px 6px;
+      background: #241f1a;
+      color: #fff;
+      border: 1px solid #3d342b;
+      padding: 5px;
       border-radius: 6px;
       font-size: 11px;
       outline: none;
-      font-weight: 600;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
 
     .card-footer {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 6px;
     }
 
     .price-tag {
       font-size: 14px;
       font-weight: 800;
-      color: var(--text-dark);
+      color: var(--accent-gold);
     }
 
     /* Add Button & Counter */
     .add-btn {
-      background: #fff;
-      color: var(--primary);
-      border: 1px solid var(--primary);
-      padding: 5px 12px;
+      background: var(--accent-gold);
+      color: #000;
+      border: none;
+      padding: 6px 14px;
       border-radius: 8px;
-      font-weight: 700;
+      font-weight: 800;
       font-size: 12px;
       cursor: pointer;
-      transition: all 0.15s ease;
-    }
-
-    .add-btn:active {
-      background: var(--primary);
-      color: #fff;
+      box-shadow: 0 2px 8px var(--accent-gold-glow);
     }
 
     .counter-box {
       display: flex;
       align-items: center;
-      background: var(--primary);
-      color: #fff;
+      background: #26201a;
+      border: 1px solid var(--accent-gold);
       border-radius: 8px;
       overflow: hidden;
     }
 
     .counter-btn {
       background: transparent;
-      color: #fff;
+      color: var(--accent-gold);
       border: none;
       padding: 4px 8px;
       font-size: 14px;
@@ -320,44 +438,32 @@
     .cart-bar {
       position: fixed;
       bottom: 0;
-      left: 0;
-      right: 0;
-      background: #ffffff;
-      border-top: 1px solid var(--border-color);
+      left: 0; right: 0;
+      background: rgba(24, 21, 18, 0.95);
+      backdrop-filter: blur(12px);
+      border-top: 1.5px solid var(--accent-gold);
       padding: 12px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       z-index: 100;
-      box-shadow: 0 -4px 15px rgba(0,0,0,0.06);
+      box-shadow: 0 -4px 25px rgba(0,0,0,0.8);
     }
 
-    .cart-info {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .cart-count {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .cart-total {
-      font-size: 17px;
-      font-weight: 800;
-      color: var(--primary);
-    }
+    .cart-info { display: flex; flex-direction: column; }
+    .cart-count { font-size: 11px; color: var(--text-muted); }
+    .cart-total { font-size: 18px; font-weight: 800; color: var(--accent-gold); }
 
     .checkout-btn {
-      background: var(--primary);
-      color: #fff;
+      background: linear-gradient(135deg, #d4af37 0%, #b58d28 100%);
+      color: #000;
       border: none;
-      padding: 10px 20px;
+      padding: 10px 22px;
       border-radius: 10px;
       font-weight: 800;
       font-size: 13px;
       cursor: pointer;
-      box-shadow: 0 3px 10px rgba(217, 119, 6, 0.3);
+      box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
     }
 
     /* Modals */
@@ -365,130 +471,159 @@
       display: none;
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(3px);
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(6px);
       z-index: 200;
       align-items: center;
       justify-content: center;
-      padding: 15px;
+      padding: 16px;
     }
 
     .modal-content {
-      background: #ffffff;
+      background: #181512;
+      border: 1px solid var(--accent-gold);
       border-radius: 20px;
       width: 100%;
       max-width: 420px;
-      padding: 20px;
+      padding: 22px;
       max-height: 85vh;
       overflow-y: auto;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.9);
     }
 
     .modal-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--card-border);
       padding-bottom: 10px;
       margin-bottom: 15px;
     }
 
-    .modal-header h3 {
-      color: var(--text-dark);
-      font-size: 16px;
-      font-weight: 800;
-    }
-
-    .close-btn {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      font-size: 20px;
-      cursor: pointer;
-    }
+    .modal-header h3 { color: var(--accent-gold); font-size: 17px; }
+    .close-btn { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; }
 
     .cart-item-row {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
       font-size: 13px;
-      font-weight: 600;
     }
 
     .place-order-btn {
       width: 100%;
-      background: var(--primary);
-      color: #fff;
+      background: linear-gradient(135deg, #d4af37 0%, #b58d28 100%);
+      color: #000;
       border: none;
-      padding: 12px;
+      padding: 13px;
       border-radius: 10px;
       font-weight: 800;
-      font-size: 14px;
+      font-size: 15px;
       margin-top: 15px;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
     }
 
-    /* Custom Success Popup Card */
-    .success-card {
+    .footer-vibe {
       text-align: center;
-      padding: 10px 5px;
-    }
-
-    .success-icon {
-      width: 60px;
-      height: 60px;
-      background: #fef3c7;
-      color: var(--primary);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 30px;
-      margin: 0 auto 12px auto;
+      padding: 30px 15px;
+      color: var(--text-muted);
+      font-size: 11px;
+      letter-spacing: 2px;
+      border-top: 1px solid var(--card-border);
+      margin-top: 30px;
     }
   </style>
 </head>
 <body>
 
-  <!-- Top Navbar Header -->
-  <div class="top-navbar">
-    <div class="brand-logo">
-      <span>☕</span>
-      <div class="brand-title">
-        <h2>Chai Ceremony</h2>
-        <p>CAFÉ</p>
+  <!-- Top Sticky Header Bar -->
+  <div class="header-bar">
+    <div class="brand-group">
+      <img src="logo.jpg" class="header-logo-img" alt="Logo" onerror="this.src='https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=100&q=80'">
+      <div class="brand-name">
+        <h2>चाय CEREMONY</h2>
+        <p>SIP • RELAX • CONNECT</p>
       </div>
     </div>
     <div class="table-badge" id="tableDisplay">Table No: --</div>
   </div>
 
-  <!-- Hero Banner -->
-  <div class="hero-banner">
-    <h1>Chai Ho <span>Toh Mood Ho!</span></h1>
-    <p>Fresh brews, delicious bites & good vibes — all in one place.</p>
+  <!-- Hero Section -->
+  <div class="hero-container">
+    <img src="logo.jpg" class="main-logo-hero" alt="Chai Ceremony Cafe" onerror="this.src='https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=200&q=80'">
+    <h1 class="hero-title">चाय CEREMONY CAFE</h1>
+    <p class="hero-tagline">Fresh Brews & Delicious Bites</p>
   </div>
 
-  <!-- Live Search Bar -->
-  <div class="search-container">
-    <input type="text" class="search-box" id="searchInput" placeholder="🔍 Search tea, burgers, pizza..." onkeyup="searchItems()">
+  <!-- Interactive Mood Filters -->
+  <div class="mood-section">
+    <div class="mood-title">✨ What's Your Mood Today?</div>
+    <div class="mood-pills">
+      <button class="mood-chip active" onclick="applyMood('all', this)">✨ All Menu</button>
+      <button class="mood-chip" onclick="applyMood('tea', this)">⚡ Quick Refresh (Chai/Coffee)</button>
+      <button class="mood-chip" onclick="applyMood('cheese', this)">🧀 Cheesy Craving</button>
+      <button class="mood-chip" onclick="applyMood('spicy', this)">🔥 Spicy Munchies</button>
+      <button class="mood-chip" onclick="applyMood('chill', this)">🧊 Sweet Chillers</button>
+    </div>
   </div>
 
-  <!-- Category Scroll Bar -->
-  <div class="category-scroll" id="categoryList">
-    <button class="cat-btn active" onclick="filterCat('All', this)">All Items</button>
-    <button class="cat-btn" onclick="filterCat('Tea Special', this)">☕ Chai</button>
-    <button class="cat-btn" onclick="filterCat('Hot Coffee', this)">☕ Coffee</button>
-    <button class="cat-btn" onclick="filterCat('Patties Corner', this)">🥐 Patties</button>
-    <button class="cat-btn" onclick="filterCat('Burgers', this)">🍔 Burger</button>
-    <button class="cat-btn" onclick="filterCat('Pizza Special', this)">🍕 Pizza</button>
-    <button class="cat-btn" onclick="filterCat('Sandwiches', this)">🥪 Sandwich</button>
-    <button class="cat-btn" onclick="filterCat('French Fries', this)">🍟 Fries</button>
-    <button class="cat-btn" onclick="filterCat('Cold Drinks & Shakes', this)">🥤 Cold Drinks</button>
+  <!-- Search Box -->
+  <div class="search-box-wrap">
+    <input type="text" class="search-input" id="searchInput" placeholder="🔍 Search Ginger Tea, Pizza, Burgers..." onkeyup="searchItems()">
   </div>
 
-  <!-- Menu Container -->
+  <!-- Trending Bestsellers Section -->
+  <div class="spotlight-section">
+    <div class="mood-title">🔥 Bestsellers & Chef Specials</div>
+    <div class="spotlight-scroll">
+      <div class="spotlight-card" onclick="quickAdd('pz5')">
+        <span class="spotlight-badge">Chef Special</span>
+        <img src="https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300&q=80" class="spotlight-img">
+        <div class="spotlight-name">सुप्रीम तंदूरी पिज्जा</div>
+        <div class="spotlight-price">₹169</div>
+      </div>
+      <div class="spotlight-card" onclick="quickAdd('t1')">
+        <span class="spotlight-badge">Must Try</span>
+        <img src="https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=300&q=80" class="spotlight-img">
+        <div class="spotlight-name">जिंजर टी (अदरक)</div>
+        <div class="spotlight-price">₹15</div>
+      </div>
+      <div class="spotlight-card" onclick="quickAdd('b3')">
+        <span class="spotlight-badge">Hot</span>
+        <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300&q=80" class="spotlight-img">
+        <div class="spotlight-name">माफिया बर्गर</div>
+        <div class="spotlight-price">₹80</div>
+      </div>
+      <div class="spotlight-card" onclick="quickAdd('cd4')">
+        <span class="spotlight-badge">Popular</span>
+        <img src="https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=300&q=80" class="spotlight-img">
+        <div class="spotlight-name">चॉकलेट ओरियो शेक</div>
+        <div class="spotlight-price">₹90</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Sticky Bar -->
+  <div class="category-bar" id="categoryList">
+    <button class="cat-tab active" onclick="filterCat('All', this)">All Items</button>
+    <button class="cat-tab" onclick="filterCat('Tea Special', this)">☕ Tea Special</button>
+    <button class="cat-tab" onclick="filterCat('Hot Coffee', this)">☕ Hot Coffee</button>
+    <button class="cat-tab" onclick="filterCat('Patties Corner', this)">🥐 Patties Corner</button>
+    <button class="cat-tab" onclick="filterCat('Burgers', this)">🍔 Burgers</button>
+    <button class="cat-tab" onclick="filterCat('Pizza Special', this)">🍕 Pizza Special</button>
+    <button class="cat-tab" onclick="filterCat('Sandwiches', this)">🥪 Sandwiches</button>
+    <button class="cat-tab" onclick="filterCat('French Fries', this)">🍟 French Fries</button>
+    <button class="cat-tab" onclick="filterCat('Cold Drinks & Shakes', this)">🥤 Cold & Shakes</button>
+  </div>
+
+  <!-- Menu Grid Container -->
   <div class="container" id="menuContainer"></div>
+
+  <!-- Footer Vibe Quote -->
+  <div class="footer-vibe">
+    ☕ WELCOME TO CHAI CEREMONY CAFE <br>
+    GOOD FOOD • GOOD MOOD
+  </div>
 
   <!-- Sticky Bottom Cart Bar -->
   <div class="cart-bar" id="cartBar" style="display:none;">
@@ -496,7 +631,7 @@
       <span class="cart-count" id="cartCount">0 Items</span>
       <span class="cart-total" id="cartTotal">₹0</span>
     </div>
-    <button class="checkout-btn" onclick="openCartModal()">View Cart 🛒</button>
+    <button class="checkout-btn" onclick="openCartModal()">View Order 🛒</button>
   </div>
 
   <!-- Cart Modal -->
@@ -507,40 +642,38 @@
         <button class="close-btn" onclick="closeCartModal()">✕</button>
       </div>
       <div id="modalCartItems"></div>
-      <hr style="border-color:var(--border-color); margin:12px 0;">
+      <hr style="border-color:var(--card-border); margin:12px 0;">
       <div class="cart-item-row" style="font-size:15px; font-weight:800;">
         <span>Total Amount:</span>
-        <span id="modalTotal" style="color:var(--primary);">₹0</span>
+        <span id="modalTotal" style="color:var(--accent-gold);">₹0</span>
       </div>
-      <button class="place-order-btn" id="submitOrderBtn" onclick="submitOrder()">Place Order Now 🚀</button>
+      <button class="place-order-btn" id="submitOrderBtn" onclick="submitOrder()">Confirm Order 🚀</button>
     </div>
   </div>
 
-  <!-- Custom Success Modal (No Browser Alerts!) -->
+  <!-- Custom Success Modal (No Browser Alert) -->
   <div class="modal" id="successModal">
-    <div class="modal-content">
-      <div class="success-card">
-        <div class="success-icon">🎉</div>
-        <h3 style="color: var(--text-dark); font-size: 18px; font-weight: 800; margin-bottom: 4px;">Order Received!</h3>
-        <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 16px;">आपका ऑर्डर किचन में तैयार हो रहा है।</p>
-        
-        <div style="background: #f9fafb; border: 1px solid var(--border-color); padding: 12px; border-radius: 12px; text-align: left; margin-bottom: 16px; font-size: 13px;">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-            <span style="color: var(--text-muted);">Table Number:</span>
-            <strong id="successTableNo" style="color: var(--primary);">--</strong>
-          </div>
-          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-            <span style="color: var(--text-muted);">Total Amount:</span>
-            <strong id="successTotal">₹0</strong>
-          </div>
-          <div style="display: flex; justify-content: space-between;">
-            <span style="color: var(--text-muted);">Status:</span>
-            <span style="color: #16a34a; font-weight: 800;">Preparing ⏳</span>
-          </div>
+    <div class="modal-content" style="text-align: center; padding: 25px 18px;">
+      <div style="font-size: 50px; margin-bottom: 10px;">🎉</div>
+      <h3 style="color: var(--accent-gold); font-size: 20px; margin-bottom: 6px;">Order Placed!</h3>
+      <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 18px;">आपका ऑर्डर किचन में भेज दिया गया है।</p>
+      
+      <div style="background: #241f1a; border: 1px solid var(--card-border); padding: 14px; border-radius: 12px; text-align: left; margin-bottom: 18px; font-size: 13px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span style="color: var(--text-muted);">Table Number:</span>
+          <strong id="successTableNo" style="color: var(--accent-gold);">--</strong>
         </div>
-
-        <button class="place-order-btn" onclick="closeSuccessModal()">Back to Menu</button>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span style="color: var(--text-muted);">Total Amount:</span>
+          <strong id="successTotal">₹0</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span style="color: var(--text-muted);">Status:</span>
+          <span style="color: #22c55e; font-weight: 800;">Preparing ⏳</span>
+        </div>
       </div>
+
+      <button class="place-order-btn" onclick="closeSuccessModal()">Back to Menu</button>
     </div>
   </div>
 
@@ -549,13 +682,11 @@
     import { db } from "./firebase-config.js";
     import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // Instant Web Audio Sound Synthesizer
+    // Audio Context Synthesizer
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
     function playSound(type) {
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
+      if (audioCtx.state === 'suspended') { audioCtx.resume(); }
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.connect(gain);
@@ -563,20 +694,18 @@
 
       if (type === 'add') {
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(450, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(750, audioCtx.currentTime + 0.08);
-        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.08);
+        osc.frequency.setValueAtTime(480, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.09);
+        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.09);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.09);
       } else if (type === 'remove') {
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(300, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.08);
+        osc.frequency.setValueAtTime(320, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(160, audioCtx.currentTime + 0.08);
         gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.08);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.08);
       } else if (type === 'success') {
         const now = audioCtx.currentTime;
         [523.25, 659.25, 783.99].forEach((freq, idx) => {
@@ -586,15 +715,14 @@
           noteGain.connect(audioCtx.destination);
           noteOsc.type = 'sine';
           noteOsc.frequency.setValueAtTime(freq, now + (idx * 0.1));
-          noteGain.gain.setValueAtTime(0.25, now + (idx * 0.1));
-          noteGain.gain.exponentialRampToValueAtTime(0.001, now + (idx * 0.1) + 0.3);
+          noteGain.gain.setValueAtTime(0.3, now + (idx * 0.1));
+          noteGain.gain.exponentialRampToValueAtTime(0.001, now + (idx * 0.1) + 0.35);
           noteOsc.start(now + (idx * 0.1));
-          noteOsc.stop(now + (idx * 0.1) + 0.3);
+          noteOsc.stop(now + (idx * 0.1) + 0.35);
         });
       }
     }
 
-    // High Quality Food Image Placeholders
     const foodImgs = {
       tea: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=300&q=80",
       coffee: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=300&q=80",
@@ -606,56 +734,49 @@
       shake: "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=300&q=80"
     };
 
-    // Actual Cafe Menu Items
     const menuData = [
-      // Tea Special
-      { id: "t1", category: "Tea Special", img: foodImgs.tea, name: "जिंजर टी (अदरक)", variants: [{ size: "Small", price: 15 }, { size: "Kulhad", price: 30 }, { size: "Large", price: 35 }] },
-      { id: "t2", category: "Tea Special", img: foodImgs.tea, name: "अमृततुल्य टी", variants: [{ size: "Small", price: 15 }, { size: "Kulhad", price: 30 }, { size: "Large", price: 35 }] },
-      { id: "t3", category: "Tea Special", img: foodImgs.tea, name: "ब्लैक टी", variants: [{ size: "Kulhad", price: 35 }] },
+      { id: "t1", category: "Tea Special", mood: "tea", img: foodImgs.tea, name: "जिंजर टी (अदरक)", variants: [{ size: "Small", price: 15 }, { size: "Kulhad", price: 30 }, { size: "Large", price: 35 }] },
+      { id: "t2", category: "Tea Special", mood: "tea", img: foodImgs.tea, name: "अमृततुल्य टी", variants: [{ size: "Small", price: 15 }, { size: "Kulhad", price: 30 }, { size: "Large", price: 35 }] },
+      { id: "t3", category: "Tea Special", mood: "tea", img: foodImgs.tea, name: "ब्लैक टी", variants: [{ size: "Kulhad", price: 35 }] },
 
-      // Hot Coffee
-      { id: "c1", category: "Hot Coffee", img: foodImgs.coffee, name: "क्लासिक हॉट कॉफी", price: 40 },
-      { id: "c2", category: "Hot Coffee", img: foodImgs.coffee, name: "ब्लैक कॉफी", price: 45 },
+      { id: "c1", category: "Hot Coffee", mood: "tea", img: foodImgs.coffee, name: "क्लासिक हॉट कॉफी", price: 40 },
+      { id: "c2", category: "Hot Coffee", mood: "tea", img: foodImgs.coffee, name: "ब्लैक कॉफी", price: 45 },
 
-      // Patties Corner
-      { id: "p1", category: "Patties Corner", img: foodImgs.patties, name: "नॉर्मल पेटीज", price: 25 },
-      { id: "p2", category: "Patties Corner", img: foodImgs.patties, name: "मसाला पेटीज", price: 35 },
-      { id: "p3", category: "Patties Corner", img: foodImgs.patties, name: "तंदूरी पेटीज", price: 40 },
-      { id: "p4", category: "Patties Corner", img: foodImgs.patties, name: "नॉर्मल पनीर पेटीज", price: 30 },
-      { id: "p5", category: "Patties Corner", img: foodImgs.patties, name: "मसाला पनीर पेटीज", price: 40 },
-      { id: "p6", category: "Patties Corner", img: foodImgs.patties, name: "तंदूरी पनीर पेटीज", price: 45 },
+      { id: "p1", category: "Patties Corner", mood: "spicy", img: foodImgs.patties, name: "नॉर्मल पेटीज", price: 25 },
+      { id: "p2", category: "Patties Corner", mood: "spicy", img: foodImgs.patties, name: "मसाला पेटीज", price: 35 },
+      { id: "p3", category: "Patties Corner", mood: "spicy", img: foodImgs.patties, name: "तंदूरी पेटीज", price: 40 },
+      { id: "p4", category: "Patties Corner", mood: "cheese", img: foodImgs.patties, name: "नॉर्मल पनीर पेटीज", price: 30 },
+      { id: "p5", category: "Patties Corner", mood: "spicy", img: foodImgs.patties, name: "मसाला पनीर पेटीज", price: 40 },
+      { id: "p6", category: "Patties Corner", mood: "spicy", img: foodImgs.patties, name: "तंदूरी पनीर पेटीज", price: 45 },
 
-      // Burgers
-      { id: "b1", category: "Burgers", img: foodImgs.burger, name: "क्रंची वेज बर्गर", price: 40 },
-      { id: "b2", category: "Burgers", img: foodImgs.burger, name: "चीजी ग्रिल्ड बर्गर", price: 50 },
-      { id: "b3", category: "Burgers", img: foodImgs.burger, name: "माफिया बर्गर", price: 80 },
+      { id: "b1", category: "Burgers", mood: "spicy", img: foodImgs.burger, name: "क्रंची वेज बर्गर", price: 40 },
+      { id: "b2", category: "Burgers", mood: "cheese", img: foodImgs.burger, name: "चीजी ग्रिल्ड बर्गर", price: 50 },
+      { id: "b3", category: "Burgers", mood: "spicy", img: foodImgs.burger, name: "माफिया बर्गर", price: 80 },
 
-      // Pizza Special
-      { id: "pz1", category: "Pizza Special", img: foodImgs.pizza, name: "क्लासिक चीज पिज्जा", price: 70 },
-      { id: "pz2", category: "Pizza Special", img: foodImgs.pizza, name: "कैप्सिकम पिज्जा", price: 99 },
-      { id: "pz3", category: "Pizza Special", img: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=300&q=80", name: "अनियन पिज्जा", price: 99 },
-      { id: "pz4", category: "Pizza Special", img: foodImgs.pizza, name: "कैप्सिकम & पनीर पिज्जा", price: 130 },
-      { id: "pz5", category: "Pizza Special", img: foodImgs.pizza, name: "सुप्रीम तंदूरी पिज्जा", price: 169 },
+      { id: "pz1", category: "Pizza Special", mood: "cheese", img: foodImgs.pizza, name: "क्लासिक चीज पिज्जा", price: 70 },
+      { id: "pz2", category: "Pizza Special", mood: "cheese", img: foodImgs.pizza, name: "कैप्सिकम पिज्जा", price: 99 },
+      { id: "pz3", category: "Pizza Special", mood: "cheese", img: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=300&q=80", name: "अनियन पिज्जा", price: 99 },
+      { id: "pz4", category: "Pizza Special", mood: "cheese", img: foodImgs.pizza, name: "कैप्सिकम & पनीर पिज्जा", price: 130 },
+      { id: "pz5", category: "Pizza Special", mood: "spicy", img: foodImgs.pizza, name: "सुप्रीम तंदूरी पिज्जा", price: 169 },
 
-      // Sandwiches
-      { id: "s1", category: "Sandwiches", img: foodImgs.sandwich, name: "वेज मेयो सैंडविच", price: 60 },
-      { id: "s2", category: "Sandwiches", img: foodImgs.sandwich, name: "चीजी मसाला ग्रिल्ड सैंडविच", price: 99 },
-      { id: "s3", category: "Sandwiches", img: foodImgs.sandwich, name: "रॉयल क्लब पनीर सैंडविच", price: 149 },
+      { id: "s1", category: "Sandwiches", mood: "cheese", img: foodImgs.sandwich, name: "वेज मेयो सैंडविच", price: 60 },
+      { id: "s2", category: "Sandwiches", mood: "spicy", img: foodImgs.sandwich, name: "चीजी मसाला ग्रिल्ड सैंडविच", price: 99 },
+      { id: "s3", category: "Sandwiches", mood: "cheese", img: foodImgs.sandwich, name: "रॉयल क्लब पनीर सैंडविच", price: 149 },
 
-      // French Fries
-      { id: "ff1", category: "French Fries", img: foodImgs.fries, name: "क्लासिक साल्टेड फ्राइज", variants: [{ size: "Small", price: 70 }, { size: "Large", price: 90 }] },
-      { id: "ff2", category: "French Fries", img: foodImgs.fries, name: "पेरी-पेरी स्पाइसी फ्राइज", price: 110 },
-      { id: "ff3", category: "French Fries", img: foodImgs.fries, name: "चीज लोडेड फ्राइज", price: 130 },
+      { id: "ff1", category: "French Fries", mood: "spicy", img: foodImgs.fries, name: "क्लासिक साल्टेड फ्राइज", variants: [{ size: "Small", price: 70 }, { size: "Large", price: 90 }] },
+      { id: "ff2", category: "French Fries", mood: "spicy", img: foodImgs.fries, name: "पेरी-पेरी स्पाइसी फ्राइज", price: 110 },
+      { id: "ff3", category: "French Fries", mood: "cheese", img: foodImgs.fries, name: "चीज लोडेड फ्राइज", price: 130 },
 
-      // Cold Drinks & Shakes
-      { id: "cd1", category: "Cold Drinks & Shakes", img: foodImgs.shake, name: "Cold Coffee", variants: [{ size: "Small", price: 35 }, { size: "Medium", price: 70 }, { size: "Large", price: 100 }] },
-      { id: "cd2", category: "Cold Drinks & Shakes", img: foodImgs.shake, name: "बनाना शेक", price: 70 },
-      { id: "cd3", category: "Cold Drinks & Shakes", img: foodImgs.shake, name: "किटकैत क्रंच शेक", price: 80 },
-      { id: "cd4", category: "Cold Drinks & Shakes", img: foodImgs.shake, name: "चॉकलेट ओरियो शेक", price: 90 }
+      { id: "cd1", category: "Cold Drinks & Shakes", mood: "chill", img: foodImgs.shake, name: "Cold Coffee", variants: [{ size: "Small", price: 35 }, { size: "Medium", price: 70 }, { size: "Large", price: 100 }] },
+      { id: "cd2", category: "Cold Drinks & Shakes", mood: "chill", img: foodImgs.shake, name: "बनाना शेक", price: 70 },
+      { id: "cd3", category: "Cold Drinks & Shakes", mood: "chill", img: foodImgs.shake, name: "किटकैत क्रंच शेक", price: 80 },
+      { id: "cd4", category: "Cold Drinks & Shakes", mood: "chill", img: foodImgs.shake, name: "चॉकलेट ओरियो शेक", price: 90 }
     ];
 
     let cart = {};
     let currentCategory = 'All';
+    let currentMood = 'all';
+
     const urlParams = new URLSearchParams(window.location.search);
     const cafeId = urlParams.get('cafe') || 'cafe1';
 
@@ -665,13 +786,22 @@
 
     window.filterCat = function(category, btnElem) {
       currentCategory = category;
-      document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.cat-tab').forEach(btn => btn.classList.remove('active'));
       if(btnElem) btnElem.classList.add('active');
       renderMenu();
     }
 
-    window.searchItems = function() {
+    window.applyMood = function(mood, btnElem) {
+      currentMood = mood;
+      document.querySelectorAll('.mood-chip').forEach(btn => btn.classList.remove('active'));
+      if(btnElem) btnElem.classList.add('active');
       renderMenu();
+    }
+
+    window.searchItems = function() { renderMenu(); }
+
+    window.quickAdd = function(itemId) {
+      addToCart(itemId);
     }
 
     function renderMenu() {
@@ -685,6 +815,11 @@
 
       categories.forEach(cat => {
         let items = menuData.filter(i => i.category === cat);
+
+        if(currentMood !== 'all') {
+          items = items.filter(i => i.mood === currentMood);
+        }
+
         if(searchQuery !== '') {
           items = items.filter(i => i.name.toLowerCase().includes(searchQuery));
         }
@@ -719,17 +854,17 @@
             card.innerHTML = `
               <div class="card-img-wrap">
                 <img src="${item.img}" alt="${item.name}">
-                <div class="veg-badge"><span class="veg-dot"></span></div>
+                <div class="veg-symbol"><span class="veg-dot"></span></div>
               </div>
               <div class="card-body">
                 <div>
-                  <div class="item-title">${item.name}</div>
+                  <div class="item-name">${item.name}</div>
                   ${variantHtml}
                 </div>
                 <div class="card-footer">
                   <div class="price-tag" id="price-display-${item.id}">${priceDisplay}</div>
                   <div id="btn-container-${item.id}">
-                    <button class="add-btn" onclick="addToCart('${item.id}')">ADD</button>
+                    <button class="add-btn" onclick="addToCart('${item.id}')">+ ADD</button>
                   </div>
                 </div>
               </div>
@@ -737,7 +872,6 @@
             grid.appendChild(card);
           });
           container.appendChild(grid);
-
           items.forEach(item => updateItemButton(item.id));
         }
       });
@@ -762,11 +896,7 @@
           price: variant.price
         };
       } else {
-        return {
-          key: itemId,
-          name: item.name,
-          price: item.price
-        };
+        return { key: itemId, name: item.name, price: item.price };
       }
     }
 
@@ -812,7 +942,7 @@
           </div>
         `;
       } else {
-        container.innerHTML = `<button class="add-btn" onclick="addToCart('${itemId}')">ADD</button>`;
+        container.innerHTML = `<button class="add-btn" onclick="addToCart('${itemId}')">+ ADD</button>`;
       }
     }
 
@@ -848,7 +978,7 @@
         itemsContainer.innerHTML += `
           <div class="cart-item-row">
             <span>${item.name} x ${item.qty}</span>
-            <span>₹${item.price * item.qty}</span>
+            <span style="color:var(--accent-gold); font-weight:bold;">₹${item.price * item.qty}</span>
           </div>
         `;
       });
@@ -899,7 +1029,7 @@
       } catch (err) {
         alert("Error placing order: " + err.message);
       } finally {
-        btn.innerText = "Place Order Now 🚀";
+        btn.innerText = "Confirm Order 🚀";
         btn.disabled = false;
       }
     }
@@ -909,8 +1039,8 @@
       document.getElementById('successModal').style.display = 'none';
     }
 
-    // Initial Render
     renderMenu();
   </script>
 </body>
 </html>
+
