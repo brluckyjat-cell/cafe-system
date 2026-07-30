@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -6,13 +7,15 @@
   <title>Chai Ceremony Cafe - Menu</title>
   <style>
     :root {
-      --bg-color: #0f0f0f;
-      --card-bg: #1a1a1a;
-      --accent-color: #ffb703;
-      --accent-hover: #fb8500;
-      --text-color: #ffffff;
-      --text-sub: #a0a0a0;
-      --green-veg: #38b000;
+      --primary: #d97706;
+      --primary-hover: #b45309;
+      --bg-body: #f8f9fa;
+      --card-bg: #ffffff;
+      --text-dark: #1f2937;
+      --text-muted: #6b7280;
+      --header-bg: #1c130d;
+      --green-veg: #16a34a;
+      --border-color: #e5e7eb;
     }
 
     * {
@@ -24,57 +27,113 @@
     }
 
     body {
-      background-color: var(--bg-color);
-      color: var(--text-color);
+      background-color: var(--bg-body);
+      color: var(--text-dark);
       padding-bottom: 90px;
     }
 
-    /* Header Banner */
-    .header {
-      background: linear-gradient(180deg, #000000 0%, #1a1a1a 100%);
-      text-align: center;
-      padding: 22px 15px 15px 15px;
-      border-bottom: 2px solid var(--accent-color);
+    /* Top Navbar Header */
+    .top-navbar {
+      background: var(--header-bg);
+      color: #fff;
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
     }
 
-    .header h1 {
-      color: var(--accent-color);
-      font-size: 24px;
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-logo span {
+      font-size: 22px;
+    }
+
+    .brand-title h2 {
+      font-size: 16px;
       font-weight: 800;
+      color: #fbbf24;
+      line-height: 1.1;
+    }
+
+    .brand-title p {
+      font-size: 10px;
+      color: #d1d5db;
       letter-spacing: 1px;
     }
 
-    .header p {
-      color: var(--text-sub);
-      font-size: 11px;
-      letter-spacing: 2px;
-      margin-top: 3px;
-      text-transform: uppercase;
+    .table-badge {
+      background: var(--primary);
+      color: #fff;
+      font-weight: 800;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      box-shadow: 0 2px 6px rgba(217, 119, 6, 0.4);
     }
 
-    .table-badge {
-      display: inline-block;
-      background: var(--accent-color);
-      color: #000;
+    /* Hero Banner */
+    .hero-banner {
+      background: linear-gradient(135deg, #2b1810 0%, #1c130d 100%);
+      color: #fff;
+      padding: 24px 20px;
+      text-align: center;
+      border-bottom-left-radius: 24px;
+      border-bottom-right-radius: 24px;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+
+    .hero-banner h1 {
+      font-size: 26px;
       font-weight: 800;
-      padding: 5px 16px;
-      border-radius: 20px;
-      font-size: 13px;
-      margin-top: 12px;
-      box-shadow: 0 2px 8px rgba(255, 183, 3, 0.3);
+      color: #fef3c7;
+      margin-bottom: 4px;
+    }
+
+    .hero-banner h1 span {
+      color: #fbbf24;
+      font-style: italic;
+    }
+
+    .hero-banner p {
+      font-size: 12px;
+      color: #e5e7eb;
+      opacity: 0.9;
     }
 
     /* Search & Categories */
+    .search-container {
+      padding: 0 16px 12px 16px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .search-box {
+      width: 100%;
+      padding: 10px 16px;
+      border-radius: 25px;
+      border: 1px solid var(--border-color);
+      background: #ffffff;
+      font-size: 13px;
+      outline: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+
     .category-scroll {
       display: flex;
       overflow-x: auto;
-      padding: 12px 15px;
-      gap: 10px;
-      background-color: #121212;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      border-bottom: 1px solid #2a2a2a;
+      padding: 4px 16px 12px 16px;
+      gap: 8px;
+      max-width: 600px;
+      margin: 0 auto;
     }
 
     .category-scroll::-webkit-scrollbar {
@@ -82,148 +141,178 @@
     }
 
     .cat-btn {
-      background: #222222;
-      color: var(--text-color);
-      border: 1px solid #333333;
-      padding: 8px 16px;
+      background: #ffffff;
+      color: var(--text-dark);
+      border: 1px solid var(--border-color);
+      padding: 7px 15px;
       border-radius: 20px;
       white-space: nowrap;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s ease;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.02);
     }
 
     .cat-btn.active {
-      background: var(--accent-color);
-      color: #000;
-      font-weight: 800;
-      border-color: var(--accent-color);
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+      box-shadow: 0 3px 8px rgba(217, 119, 6, 0.3);
     }
 
-    /* Menu List */
+    /* Menu Container & Grid */
     .container {
       max-width: 600px;
       margin: 0 auto;
-      padding: 15px;
+      padding: 0 16px;
     }
 
     .section-title {
-      color: var(--accent-color);
-      font-size: 17px;
-      font-weight: 700;
-      margin: 18px 0 12px 0;
-      border-left: 4px solid var(--accent-color);
-      padding-left: 10px;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin: 16px 0 10px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
     }
 
     .menu-card {
       background: var(--card-bg);
-      border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 12px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
       display: flex;
+      flex-direction: column;
       justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-      border: 1px solid #262626;
+      transition: transform 0.15s ease;
     }
 
-    .item-info {
-      flex: 1;
-      padding-right: 12px;
+    .card-img-wrap {
+      width: 100%;
+      height: 110px;
+      background: #f3f4f6;
+      position: relative;
+      overflow: hidden;
     }
 
-    .item-title {
-      font-size: 15px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-wrap: wrap;
+    .card-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
-    .veg-symbol {
-      width: 14px;
-      height: 14px;
+    .veg-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(255, 255, 255, 0.9);
+      width: 16px;
+      height: 16px;
       border: 1px solid var(--green-veg);
-      display: inline-flex;
+      border-radius: 4px;
+      display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 3px;
     }
 
     .veg-dot {
       width: 6px;
       height: 6px;
-      background-color: var(--green-veg);
+      background: var(--green-veg);
       border-radius: 50%;
     }
 
-    .item-tag {
-      background: rgba(255, 183, 3, 0.15);
-      color: var(--accent-color);
-      font-size: 10px;
-      padding: 2px 7px;
-      border-radius: 4px;
-      border: 1px solid var(--accent-color);
+    .card-body {
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      justify-content: space-between;
+    }
+
+    .item-title {
+      font-size: 13px;
       font-weight: 700;
+      color: var(--text-dark);
+      line-height: 1.2;
+      margin-bottom: 4px;
     }
 
     .variant-select {
-      margin-top: 8px;
-      background: #262626;
-      color: var(--text-color);
-      border: 1px solid #404040;
-      padding: 6px 10px;
-      border-radius: 8px;
-      font-size: 12px;
+      width: 100%;
+      background: #f9fafb;
+      color: var(--text-dark);
+      border: 1px solid #d1d5db;
+      padding: 4px 6px;
+      border-radius: 6px;
+      font-size: 11px;
       outline: none;
       font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 6px;
     }
 
     .price-tag {
-      color: var(--accent-color);
+      font-size: 14px;
       font-weight: 800;
-      font-size: 16px;
-      margin-top: 6px;
+      color: var(--text-dark);
     }
 
     /* Add Button & Counter */
     .add-btn {
-      background: var(--accent-color);
-      color: #000;
-      border: none;
-      padding: 9px 18px;
+      background: #fff;
+      color: var(--primary);
+      border: 1px solid var(--primary);
+      padding: 5px 12px;
       border-radius: 8px;
-      font-weight: 800;
-      font-size: 13px;
+      font-weight: 700;
+      font-size: 12px;
       cursor: pointer;
-      box-shadow: 0 2px 6px rgba(255, 183, 3, 0.2);
+      transition: all 0.15s ease;
+    }
+
+    .add-btn:active {
+      background: var(--primary);
+      color: #fff;
     }
 
     .counter-box {
       display: flex;
       align-items: center;
-      background: #262626;
-      border: 1px solid var(--accent-color);
+      background: var(--primary);
+      color: #fff;
       border-radius: 8px;
       overflow: hidden;
     }
 
     .counter-btn {
       background: transparent;
-      color: var(--accent-color);
+      color: #fff;
       border: none;
-      padding: 6px 12px;
-      font-size: 16px;
+      padding: 4px 8px;
+      font-size: 14px;
       font-weight: bold;
       cursor: pointer;
     }
 
     .counter-num {
-      padding: 0 8px;
-      font-size: 14px;
+      padding: 0 4px;
+      font-size: 12px;
       font-weight: 800;
     }
 
@@ -233,14 +322,14 @@
       bottom: 0;
       left: 0;
       right: 0;
-      background: #1a1a1a;
-      border-top: 2px solid var(--accent-color);
+      background: #ffffff;
+      border-top: 1px solid var(--border-color);
       padding: 12px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       z-index: 100;
-      box-shadow: 0 -4px 20px rgba(0,0,0,0.6);
+      box-shadow: 0 -4px 15px rgba(0,0,0,0.06);
     }
 
     .cart-info {
@@ -249,33 +338,35 @@
     }
 
     .cart-count {
-      font-size: 12px;
-      color: var(--text-sub);
+      font-size: 11px;
+      color: var(--text-muted);
     }
 
     .cart-total {
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 800;
-      color: var(--accent-color);
+      color: var(--primary);
     }
 
     .checkout-btn {
-      background: var(--accent-color);
-      color: #000;
+      background: var(--primary);
+      color: #fff;
       border: none;
-      padding: 10px 22px;
-      border-radius: 8px;
+      padding: 10px 20px;
+      border-radius: 10px;
       font-weight: 800;
-      font-size: 14px;
+      font-size: 13px;
       cursor: pointer;
+      box-shadow: 0 3px 10px rgba(217, 119, 6, 0.3);
     }
 
-    /* Modal / Popup */
+    /* Modals */
     .modal {
       display: none;
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.85);
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(3px);
       z-index: 200;
       align-items: center;
       justify-content: center;
@@ -283,94 +374,120 @@
     }
 
     .modal-content {
-      background: #1a1a1a;
-      border: 1px solid var(--accent-color);
-      border-radius: 14px;
+      background: #ffffff;
+      border-radius: 20px;
       width: 100%;
-      max-width: 450px;
+      max-width: 420px;
       padding: 20px;
-      max-height: 80vh;
+      max-height: 85vh;
       overflow-y: auto;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
     }
 
     .modal-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid #333;
+      border-bottom: 1px solid var(--border-color);
       padding-bottom: 10px;
       margin-bottom: 15px;
     }
 
     .modal-header h3 {
-      color: var(--accent-color);
+      color: var(--text-dark);
+      font-size: 16px;
+      font-weight: 800;
     }
 
     .close-btn {
       background: none;
       border: none;
-      color: #fff;
-      font-size: 22px;
+      color: var(--text-muted);
+      font-size: 20px;
       cursor: pointer;
     }
 
     .cart-item-row {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 12px;
-      font-size: 14px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      font-weight: 600;
     }
 
     .place-order-btn {
       width: 100%;
-      background: var(--accent-color);
-      color: #000;
+      background: var(--primary);
+      color: #fff;
       border: none;
       padding: 12px;
-      border-radius: 8px;
+      border-radius: 10px;
       font-weight: 800;
-      font-size: 15px;
+      font-size: 14px;
       margin-top: 15px;
       cursor: pointer;
+      box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
     }
 
-    /* Success Modal Animations */
+    /* Custom Success Popup Card */
+    .success-card {
+      text-align: center;
+      padding: 10px 5px;
+    }
+
     .success-icon {
-      font-size: 60px;
-      animation: popIn 0.5s ease-out;
-      margin-bottom: 10px;
-    }
-
-    @keyframes popIn {
-      0% { transform: scale(0); opacity: 0; }
-      80% { transform: scale(1.2); }
-      100% { transform: scale(1); opacity: 1; }
+      width: 60px;
+      height: 60px;
+      background: #fef3c7;
+      color: var(--primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      margin: 0 auto 12px auto;
     }
   </style>
 </head>
 <body>
 
-  <!-- Header -->
-  <div class="header">
-    <h1>चाय CEREMONY CAFE</h1>
-    <p>SIP • RELAX • CONNECT</p>
+  <!-- Top Navbar Header -->
+  <div class="top-navbar">
+    <div class="brand-logo">
+      <span>☕</span>
+      <div class="brand-title">
+        <h2>Chai Ceremony</h2>
+        <p>CAFÉ</p>
+      </div>
+    </div>
     <div class="table-badge" id="tableDisplay">Table No: --</div>
+  </div>
+
+  <!-- Hero Banner -->
+  <div class="hero-banner">
+    <h1>Chai Ho <span>Toh Mood Ho!</span></h1>
+    <p>Fresh brews, delicious bites & good vibes — all in one place.</p>
+  </div>
+
+  <!-- Live Search Bar -->
+  <div class="search-container">
+    <input type="text" class="search-box" id="searchInput" placeholder="🔍 Search tea, burgers, pizza..." onkeyup="searchItems()">
   </div>
 
   <!-- Category Scroll Bar -->
   <div class="category-scroll" id="categoryList">
-    <button class="cat-btn active" onclick="filterCat('All', this)">All</button>
-    <button class="cat-btn" onclick="filterCat('Tea Special', this)">☕ Tea</button>
+    <button class="cat-btn active" onclick="filterCat('All', this)">All Items</button>
+    <button class="cat-btn" onclick="filterCat('Tea Special', this)">☕ Chai</button>
     <button class="cat-btn" onclick="filterCat('Hot Coffee', this)">☕ Coffee</button>
     <button class="cat-btn" onclick="filterCat('Patties Corner', this)">🥐 Patties</button>
-    <button class="cat-btn" onclick="filterCat('Burgers', this)">🍔 Burgers</button>
+    <button class="cat-btn" onclick="filterCat('Burgers', this)">🍔 Burger</button>
     <button class="cat-btn" onclick="filterCat('Pizza Special', this)">🍕 Pizza</button>
-    <button class="cat-btn" onclick="filterCat('Sandwiches', this)">🥪 Sandwiches</button>
+    <button class="cat-btn" onclick="filterCat('Sandwiches', this)">🥪 Sandwich</button>
     <button class="cat-btn" onclick="filterCat('French Fries', this)">🍟 Fries</button>
-    <button class="cat-btn" onclick="filterCat('Cold Drinks & Shakes', this)">🥤 Cold & Shakes</button>
+    <button class="cat-btn" onclick="filterCat('Cold Drinks & Shakes', this)">🥤 Cold Drinks</button>
   </div>
 
-  <!-- Menu List Container -->
+  <!-- Menu Container -->
   <div class="container" id="menuContainer"></div>
 
   <!-- Sticky Bottom Cart Bar -->
@@ -386,43 +503,44 @@
   <div class="modal" id="cartModal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>Your Order Summary</h3>
+        <h3>Your Selected Items</h3>
         <button class="close-btn" onclick="closeCartModal()">✕</button>
       </div>
       <div id="modalCartItems"></div>
-      <hr style="border-color:#333; margin:15px 0;">
-      <div class="cart-item-row" style="font-size:16px; font-weight:bold;">
-        <span>Total Payable:</span>
-        <span id="modalTotal" style="color:var(--accent-color);">₹0</span>
+      <hr style="border-color:var(--border-color); margin:12px 0;">
+      <div class="cart-item-row" style="font-size:15px; font-weight:800;">
+        <span>Total Amount:</span>
+        <span id="modalTotal" style="color:var(--primary);">₹0</span>
       </div>
       <button class="place-order-btn" id="submitOrderBtn" onclick="submitOrder()">Place Order Now 🚀</button>
     </div>
   </div>
 
-  <!-- Order Success Modal (Replaces Browser Alert) -->
+  <!-- Custom Success Modal (No Browser Alerts!) -->
   <div class="modal" id="successModal">
-    <div class="modal-content" style="text-align: center; padding: 25px 20px;">
-      <div class="success-icon">🎉</div>
-      <h2 style="color: var(--accent-color); font-size: 20px; font-weight: 800; margin-bottom: 6px;">Order Placed Successfully!</h2>
-      <p style="color: var(--text-sub); font-size: 13px; margin-bottom: 18px;">आपका ऑर्डर किचन में भेज दिया गया है।</p>
-      
-      <div style="background: #242424; border: 1px solid #333; padding: 15px; border-radius: 10px; text-align: left; margin-bottom: 20px; font-size: 14px;">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-          <span style="color: var(--text-sub);">Table Number:</span>
-          <strong id="successTableNo" style="color: var(--accent-color);">--</strong>
+    <div class="modal-content">
+      <div class="success-card">
+        <div class="success-icon">🎉</div>
+        <h3 style="color: var(--text-dark); font-size: 18px; font-weight: 800; margin-bottom: 4px;">Order Received!</h3>
+        <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 16px;">आपका ऑर्डर किचन में तैयार हो रहा है।</p>
+        
+        <div style="background: #f9fafb; border: 1px solid var(--border-color); padding: 12px; border-radius: 12px; text-align: left; margin-bottom: 16px; font-size: 13px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span style="color: var(--text-muted);">Table Number:</span>
+            <strong id="successTableNo" style="color: var(--primary);">--</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+            <span style="color: var(--text-muted);">Total Amount:</span>
+            <strong id="successTotal">₹0</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Status:</span>
+            <span style="color: #16a34a; font-weight: 800;">Preparing ⏳</span>
+          </div>
         </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-          <span style="color: var(--text-sub);">Total Amount:</span>
-          <strong id="successTotal">₹0</strong>
-        </div>
-        <div style="display: flex; justify-content: space-between;">
-          <span style="color: var(--text-sub);">Order Status:</span>
-          <span style="color: #38b000; font-weight: 800;">Preparing ⏳</span>
-        </div>
-      </div>
 
-      <p style="font-size: 12px; color: #888; margin-bottom: 18px;">☕ Sip • Relax • Connect</p>
-      <button class="place-order-btn" onclick="closeSuccessModal()">Order More / मेन्यू देखें</button>
+        <button class="place-order-btn" onclick="closeSuccessModal()">Back to Menu</button>
+      </div>
     </div>
   </div>
 
@@ -431,7 +549,7 @@
     import { db } from "./firebase-config.js";
     import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // Audio Context Synthesizer (Instant Customer Satisfaction Sounds)
+    // Instant Web Audio Sound Synthesizer
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
     function playSound(type) {
@@ -445,87 +563,99 @@
 
       if (type === 'add') {
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(520, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        osc.frequency.setValueAtTime(450, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(750, audioCtx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
         osc.start();
-        osc.stop(audioCtx.currentTime + 0.1);
+        osc.stop(audioCtx.currentTime + 0.08);
       } else if (type === 'remove') {
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(320, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(160, audioCtx.currentTime + 0.08);
+        osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.08);
         gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
         osc.start();
         osc.stop(audioCtx.currentTime + 0.08);
       } else if (type === 'success') {
         const now = audioCtx.currentTime;
-        const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
-        notes.forEach((freq, idx) => {
+        [523.25, 659.25, 783.99].forEach((freq, idx) => {
           const noteOsc = audioCtx.createOscillator();
           const noteGain = audioCtx.createGain();
           noteOsc.connect(noteGain);
           noteGain.connect(audioCtx.destination);
           noteOsc.type = 'sine';
-          noteOsc.frequency.setValueAtTime(freq, now + (idx * 0.12));
-          noteGain.gain.setValueAtTime(0.3, now + (idx * 0.12));
-          noteGain.gain.exponentialRampToValueAtTime(0.001, now + (idx * 0.12) + 0.4);
-          noteOsc.start(now + (idx * 0.12));
-          noteOsc.stop(now + (idx * 0.12) + 0.4);
+          noteOsc.frequency.setValueAtTime(freq, now + (idx * 0.1));
+          noteGain.gain.setValueAtTime(0.25, now + (idx * 0.1));
+          noteGain.gain.exponentialRampToValueAtTime(0.001, now + (idx * 0.1) + 0.3);
+          noteOsc.start(now + (idx * 0.1));
+          noteOsc.stop(now + (idx * 0.1) + 0.3);
         });
       }
     }
 
-    // Menu Data
+    // High Quality Food Image Placeholders
+    const foodImgs = {
+      tea: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=300&q=80",
+      coffee: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=300&q=80",
+      patties: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=300&q=80",
+      burger: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300&q=80",
+      pizza: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300&q=80",
+      sandwich: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=300&q=80",
+      fries: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=300&q=80",
+      shake: "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=300&q=80"
+    };
+
+    // Actual Cafe Menu Items
     const menuData = [
       // Tea Special
-      { id: "t1", category: "Tea Special", name: "जिंजर टी (अदरक)", variants: [{ size: "Small", price: 15 }, { size: "Kulhad", price: 30 }, { size: "Large", price: 35 }] },
-      { id: "t2", category: "Tea Special", name: "अमृततुल्य टी", variants: [{ size: "Small", price: 15 }, { size: "Kulhad", price: 30 }, { size: "Large", price: 35 }] },
-      { id: "t3", category: "Tea Special", name: "ब्लैक टी", variants: [{ size: "Kulhad", price: 35 }] },
+      { id: "t1", category: "Tea Special", img: foodImgs.tea, name: "जिंजर टी (अदरक)", variants: [{ size: "Small", price: 15 }, { size: "Kulhad", price: 30 }, { size: "Large", price: 35 }] },
+      { id: "t2", category: "Tea Special", img: foodImgs.tea, name: "अमृततुल्य टी", variants: [{ size: "Small", price: 15 }, { size: "Kulhad", price: 30 }, { size: "Large", price: 35 }] },
+      { id: "t3", category: "Tea Special", img: foodImgs.tea, name: "ब्लैक टी", variants: [{ size: "Kulhad", price: 35 }] },
 
       // Hot Coffee
-      { id: "c1", category: "Hot Coffee", name: "क्लासिक हॉट कॉफी", price: 40 },
-      { id: "c2", category: "Hot Coffee", name: "ब्लैक कॉफी", price: 45 },
+      { id: "c1", category: "Hot Coffee", img: foodImgs.coffee, name: "क्लासिक हॉट कॉफी", price: 40 },
+      { id: "c2", category: "Hot Coffee", img: foodImgs.coffee, name: "ब्लैक कॉफी", price: 45 },
 
       // Patties Corner
-      { id: "p1", category: "Patties Corner", name: "नॉर्मल पेटीज", price: 25 },
-      { id: "p2", category: "Patties Corner", name: "मसाला पेटीज", price: 35 },
-      { id: "p3", category: "Patties Corner", name: "तंदूरी पेटीज", tag: "Spicy", price: 40 },
-      { id: "p4", category: "Patties Corner", name: "नॉर्मल पनीर पेटीज", price: 30 },
-      { id: "p5", category: "Patties Corner", name: "मसाला पनीर पेटीज", price: 40 },
-      { id: "p6", category: "Patties Corner", name: "तंदूरी पनीर पेटीज", price: 45 },
+      { id: "p1", category: "Patties Corner", img: foodImgs.patties, name: "नॉर्मल पेटीज", price: 25 },
+      { id: "p2", category: "Patties Corner", img: foodImgs.patties, name: "मसाला पेटीज", price: 35 },
+      { id: "p3", category: "Patties Corner", img: foodImgs.patties, name: "तंदूरी पेटीज", price: 40 },
+      { id: "p4", category: "Patties Corner", img: foodImgs.patties, name: "नॉर्मल पनीर पेटीज", price: 30 },
+      { id: "p5", category: "Patties Corner", img: foodImgs.patties, name: "मसाला पनीर पेटीज", price: 40 },
+      { id: "p6", category: "Patties Corner", img: foodImgs.patties, name: "तंदूरी पनीर पेटीज", price: 45 },
 
       // Burgers
-      { id: "b1", category: "Burgers", name: "क्रंची वेज बर्गर", price: 40 },
-      { id: "b2", category: "Burgers", name: "चीजी ग्रिल्ड बर्गर", price: 50 },
-      { id: "b3", category: "Burgers", name: "माफिया बर्गर", tag: "Special", price: 80 },
+      { id: "b1", category: "Burgers", img: foodImgs.burger, name: "क्रंची वेज बर्गर", price: 40 },
+      { id: "b2", category: "Burgers", img: foodImgs.burger, name: "चीजी ग्रिल्ड बर्गर", price: 50 },
+      { id: "b3", category: "Burgers", img: foodImgs.burger, name: "माफिया बर्गर", price: 80 },
 
       // Pizza Special
-      { id: "pz1", category: "Pizza Special", name: "क्लासिक चीज पिज्जा", price: 70 },
-      { id: "pz2", category: "Pizza Special", name: "कैप्सिकम पिज्जा", price: 99 },
-      { id: "pz3", category: "Pizza Special", name: "अनियन पिज्जा", price: 99 },
-      { id: "pz4", category: "Pizza Special", name: "कैप्सिकम & पनीर पिज्जा", price: 130 },
-      { id: "pz5", category: "Pizza Special", name: "सुप्रीम तंदूरी पिज्जा", tag: "Chef's Special", price: 169 },
+      { id: "pz1", category: "Pizza Special", img: foodImgs.pizza, name: "क्लासिक चीज पिज्जा", price: 70 },
+      { id: "pz2", category: "Pizza Special", img: foodImgs.pizza, name: "कैप्सिकम पिज्जा", price: 99 },
+      { id: "pz3", category: "Pizza Special", img: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=300&q=80", name: "अनियन पिज्जा", price: 99 },
+      { id: "pz4", category: "Pizza Special", img: foodImgs.pizza, name: "कैप्सिकम & पनीर पिज्जा", price: 130 },
+      { id: "pz5", category: "Pizza Special", img: foodImgs.pizza, name: "सुप्रीम तंदूरी पिज्जा", price: 169 },
 
       // Sandwiches
-      { id: "s1", category: "Sandwiches", name: "वेज मेयो सैंडविच", price: 60 },
-      { id: "s2", category: "Sandwiches", name: "चीजी मसाला ग्रिल्ड सैंडविच", price: 99 },
-      { id: "s3", category: "Sandwiches", name: "रॉयल क्लब पनीर सैंडविच", price: 149 },
+      { id: "s1", category: "Sandwiches", img: foodImgs.sandwich, name: "वेज मेयो सैंडविच", price: 60 },
+      { id: "s2", category: "Sandwiches", img: foodImgs.sandwich, name: "चीजी मसाला ग्रिल्ड सैंडविच", price: 99 },
+      { id: "s3", category: "Sandwiches", img: foodImgs.sandwich, name: "रॉयल क्लब पनीर सैंडविच", price: 149 },
 
       // French Fries
-      { id: "ff1", category: "French Fries", name: "क्लासिक साल्टेड फ्राइज", variants: [{ size: "Small", price: 70 }, { size: "Large", price: 90 }] },
-      { id: "ff2", category: "French Fries", name: "पेरी-पेरी स्पाइसी फ्राइज", price: 110 },
-      { id: "ff3", category: "French Fries", name: "चीज लोडेड फ्राइज", price: 130 },
+      { id: "ff1", category: "French Fries", img: foodImgs.fries, name: "क्लासिक साल्टेड फ्राइज", variants: [{ size: "Small", price: 70 }, { size: "Large", price: 90 }] },
+      { id: "ff2", category: "French Fries", img: foodImgs.fries, name: "पेरी-पेरी स्पाइसी फ्राइज", price: 110 },
+      { id: "ff3", category: "French Fries", img: foodImgs.fries, name: "चीज लोडेड फ्राइज", price: 130 },
 
       // Cold Drinks & Shakes
-      { id: "cd1", category: "Cold Drinks & Shakes", name: "Cold Coffee", variants: [{ size: "Small", price: 35 }, { size: "Medium", price: 70 }, { size: "Large", price: 100 }] },
-      { id: "cd2", category: "Cold Drinks & Shakes", name: "बनाना शेक", price: 70 },
-      { id: "cd3", category: "Cold Drinks & Shakes", name: "किटकैत क्रंच शेक", price: 80 },
-      { id: "cd4", category: "Cold Drinks & Shakes", name: "चॉकलेट ओरियो शेक", price: 90 }
+      { id: "cd1", category: "Cold Drinks & Shakes", img: foodImgs.shake, name: "Cold Coffee", variants: [{ size: "Small", price: 35 }, { size: "Medium", price: 70 }, { size: "Large", price: 100 }] },
+      { id: "cd2", category: "Cold Drinks & Shakes", img: foodImgs.shake, name: "बनाना शेक", price: 70 },
+      { id: "cd3", category: "Cold Drinks & Shakes", img: foodImgs.shake, name: "किटकैत क्रंच शेक", price: 80 },
+      { id: "cd4", category: "Cold Drinks & Shakes", img: foodImgs.shake, name: "चॉकलेट ओरियो शेक", price: 90 }
     ];
 
     let cart = {};
+    let currentCategory = 'All';
     const urlParams = new URLSearchParams(window.location.search);
     const cafeId = urlParams.get('cafe') || 'cafe1';
 
@@ -534,61 +664,89 @@
     document.getElementById('tableDisplay').innerText = `Table No: ${cleanTable}`;
 
     window.filterCat = function(category, btnElem) {
+      currentCategory = category;
       document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
       if(btnElem) btnElem.classList.add('active');
-      renderMenu(category);
+      renderMenu();
     }
 
-    function renderMenu(filterCat = 'All') {
+    window.searchItems = function() {
+      renderMenu();
+    }
+
+    function renderMenu() {
       const container = document.getElementById('menuContainer');
       container.innerHTML = '';
+      const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
 
-      const categories = filterCat === 'All' 
+      const categories = currentCategory === 'All' 
         ? [...new Set(menuData.map(i => i.category))]
-        : [filterCat];
+        : [currentCategory];
 
       categories.forEach(cat => {
-        const catHeader = document.createElement('div');
-        catHeader.className = 'section-title';
-        catHeader.innerText = cat;
-        container.appendChild(catHeader);
+        let items = menuData.filter(i => i.category === cat);
+        if(searchQuery !== '') {
+          items = items.filter(i => i.name.toLowerCase().includes(searchQuery));
+        }
 
-        const items = menuData.filter(i => i.category === cat);
-        items.forEach(item => {
-          const card = document.createElement('div');
-          card.className = 'menu-card';
+        if(items.length > 0) {
+          const catHeader = document.createElement('div');
+          catHeader.className = 'section-title';
+          catHeader.innerText = cat;
+          container.appendChild(catHeader);
 
-          let priceContent = '';
-          if(item.variants) {
-            priceContent = `
-              <select class="variant-select" id="var-${item.id}" onchange="updateVariantPrice('${item.id}')">
-                ${item.variants.map((v, index) => `<option value="${index}">${v.size} - ₹${v.price}</option>`).join('')}
-              </select>
-            `;
-          } else {
-            priceContent = `<div class="price-tag">₹${item.price}</div>`;
-          }
+          const grid = document.createElement('div');
+          grid.className = 'menu-grid';
 
-          card.innerHTML = `
-            <div class="item-info">
-              <div class="item-title">
-                <span class="veg-symbol"><span class="veg-dot"></span></span>
-                ${item.name}
-                ${item.tag ? `<span class="item-tag">${item.tag}</span>` : ''}
+          items.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'menu-card';
+
+            let variantHtml = '';
+            let priceDisplay = '';
+
+            if(item.variants) {
+              variantHtml = `
+                <select class="variant-select" id="var-${item.id}" onchange="updateVariantPrice('${item.id}')">
+                  ${item.variants.map((v, index) => `<option value="${index}">${v.size} - ₹${v.price}</option>`).join('')}
+                </select>
+              `;
+              priceDisplay = `₹${item.variants[0].price}`;
+            } else {
+              priceDisplay = `₹${item.price}`;
+            }
+
+            card.innerHTML = `
+              <div class="card-img-wrap">
+                <img src="${item.img}" alt="${item.name}">
+                <div class="veg-badge"><span class="veg-dot"></span></div>
               </div>
-              ${priceContent}
-            </div>
-            <div id="btn-container-${item.id}">
-              <button class="add-btn" onclick="addToCart('${item.id}')">+ ADD</button>
-            </div>
-          `;
-          container.appendChild(card);
-          updateItemButton(item.id);
-        });
+              <div class="card-body">
+                <div>
+                  <div class="item-title">${item.name}</div>
+                  ${variantHtml}
+                </div>
+                <div class="card-footer">
+                  <div class="price-tag" id="price-display-${item.id}">${priceDisplay}</div>
+                  <div id="btn-container-${item.id}">
+                    <button class="add-btn" onclick="addToCart('${item.id}')">ADD</button>
+                  </div>
+                </div>
+              </div>
+            `;
+            grid.appendChild(card);
+          });
+          container.appendChild(grid);
+
+          items.forEach(item => updateItemButton(item.id));
+        }
       });
     }
 
     window.updateVariantPrice = function(itemId) {
+      const details = getSelectedItemDetails(itemId);
+      const priceDisplay = document.getElementById(`price-display-${itemId}`);
+      if(priceDisplay) priceDisplay.innerText = `₹${details.price}`;
       updateItemButton(itemId);
     }
 
@@ -654,7 +812,7 @@
           </div>
         `;
       } else {
-        container.innerHTML = `<button class="add-btn" onclick="addToCart('${itemId}')">+ ADD</button>`;
+        container.innerHTML = `<button class="add-btn" onclick="addToCart('${itemId}')">ADD</button>`;
       }
     }
 
@@ -729,7 +887,6 @@
 
         playSound('success');
         
-        // Populate Success Modal
         document.getElementById('successTableNo').innerText = cleanTable;
         document.getElementById('successTotal').innerText = `₹${totalPrice}`;
         
@@ -738,7 +895,6 @@
         closeCartModal();
         renderMenu();
 
-        // Show Custom Popup
         document.getElementById('successModal').style.display = 'flex';
       } catch (err) {
         alert("Error placing order: " + err.message);
@@ -758,4 +914,3 @@
   </script>
 </body>
 </html>
-
