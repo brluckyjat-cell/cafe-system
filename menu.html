@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cafe Menu</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 15px; max-width: 500px; margin: auto; background: #f8f9fa; }
+    .header { background: #2c3e50; color: white; padding: 15px; border-radius: 8px; text-align: center; }
+    .card { background: white; border: 1px solid #ddd; padding: 12px; margin-top: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    button { background: #27ae60; color: white; border: none; padding: 10px 18px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+    button:active { background: #219150; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h2 id="cafe-title">Cafe Menu</h2>
+    <p id="table-no">Table: --</p>
+  </div>
+
+  <div id="menu-container"></div>
+
+  <script type="module">
+    import { db } from './firebase-config.js';
+    import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // URL params se cafe ID aur table read karna (?cafe=cafe1&table=1)
+    const urlParams = new URLSearchParams(window.location.search);
+    const cafeId = urlParams.get('cafe') || 'cafe1';
+    const tableNo = urlParams.get('table') || '1';
+
+    document.getElementById('cafe-title').innerText = cafeId.toUpperCase() + " Menu";
+    document.getElementById('table-no').innerText = "Table No: " + tableNo;
+
+    // Menu Items List
+    const items = [
+      { name: "Cold Coffee", price: 120 },
+      { name: "Veg Burger", price: 80 },
+      { name: "Cheese Pizza", price: 220 },
+      { name: "Masala Chai", price: 30 }
+    ];
+
+    const container = document.getElementById('menu-container');
+    items.forEach(item => {
+      container.innerHTML += `
+        <div class="card">
+          <div><b>${item.name}</b><br>₹${item.price}</div>
+          <button onclick="orderItem('${item.name}', ${item.price})">Order</button>
+        </div>
+      `;
+    });
+
+    window.orderItem = async (itemName, price) => {
+      try {
+        await addDoc(collection(db, "cafes", cafeId, "orders"), {
+          item: itemName,
+          price: price,
+          table: tableNo,
+          status: "Pending",
+          timestamp: new Date()
+        });
+        alert("Order success! Multi-item support and details sent to admin.");
+      } catch (e) {
+        alert("Error placing order: " + e.message);
+      }
+    };
+  </script>
+</body>
+</html>
