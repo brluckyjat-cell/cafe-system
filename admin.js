@@ -1,3 +1,4 @@
+
 // Admin Dashboard Logic (admin.js)
 
 let adminOrders = [];
@@ -42,7 +43,7 @@ function setupAdminAuth() {
 }
 
 function checkSession() {
-  if (sessionStorage.setItem && sessionStorage.getItem("ccc_admin_auth") === "true") {
+  if (sessionStorage.getItem("ccc_admin_auth") === "true") {
     unlockAdminDashboard();
   }
 }
@@ -195,7 +196,7 @@ function calculateKPIs() {
   if (completedEl) completedEl.innerText = completedCount;
 }
 
-// 2. Admin Products CRUD (Permanent Persistence)
+// 2. Admin Products CRUD
 function listenToAdminProducts() {
   const localProds = localStorage.getItem("ccc_products");
   if (localProds) {
@@ -227,7 +228,7 @@ function renderAdminProductsTable() {
   adminProducts.forEach(prod => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td><img src="${prod.image}" style="width:40px; height:40px; border-radius:6px; object-fit:cover;"></td>
+      <td><img src="${prod.image}" style="width:40px; height:40px; border-radius:6px; object-fit:cover;" onerror="this.src='https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=600&q=80'"></td>
       <td style="font-weight:600; color:#FFF;">${prod.title}</td>
       <td>${prod.category}</td>
       <td style="color:var(--royal-gold); font-weight:700;">₹${prod.price}</td>
@@ -462,12 +463,17 @@ function setupAdminForms() {
       const titleVal = (document.getElementById("prod-title").value || "").trim();
       const catVal = document.getElementById("prod-category").value || "Chai";
       const priceVal = Number(document.getElementById("prod-price").value) || 0;
-      const imgVal = (document.getElementById("prod-image").value || "").trim();
+      let imgVal = (document.getElementById("prod-image").value || "").trim();
       const descVal = (document.getElementById("prod-desc").value || "").trim();
       const isVegVal = document.getElementById("prod-veg").value === "true";
 
-      if (!titleVal || !imgVal || priceVal <= 0) {
-        alert("Please fill all required fields correctly!");
+      // Fallback Image if URL is empty
+      if (!imgVal || !imgVal.startsWith("http")) {
+        imgVal = "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=600&q=80";
+      }
+
+      if (!titleVal || priceVal <= 0) {
+        alert("Please enter a valid title and price!");
         return;
       }
 
@@ -534,4 +540,3 @@ function setupAdminForms() {
     });
   }
 }
-
