@@ -6,6 +6,7 @@ let adminCategories = [];
 
 document.addEventListener("DOMContentLoaded", () => {
   setupAdminAuth();
+  checkSession();
   startClock();
   setupAdminForms();
 });
@@ -18,33 +19,47 @@ function startClock() {
   }, 1000);
 }
 
-// Authentication
+// Authentication & Session
 function setupAdminAuth() {
   document.getElementById("admin-login-form").addEventListener("submit", (e) => {
     e.preventDefault();
-    const email = document.getElementById("admin-email").value;
-    const password = document.getElementById("admin-password").value;
+    const email = document.getElementById("admin-email").value.trim();
+    const password = document.getElementById("admin-password").value.trim();
 
-    // Simple Admin Auth / Firebase Auth integration
     if (email === "admin@chaiceremony.com" && password === "admin123") {
-      document.getElementById("admin-login-modal").classList.remove("active");
-      initAdminDashboard();
+      sessionStorage.setItem("ccc_admin_auth", "true");
+      unlockAdminDashboard();
     } else {
       alert("Invalid Admin Credentials!");
     }
   });
 }
 
+function checkSession() {
+  if (sessionStorage.getItem("ccc_admin_auth") === "true") {
+    unlockAdminDashboard();
+  }
+}
+
+function unlockAdminDashboard() {
+  document.getElementById("admin-login-modal").classList.remove("active");
+  document.getElementById("admin-dashboard-container").style.display = "block";
+  initAdminDashboard();
+}
+
 function adminLogout() {
+  sessionStorage.removeItem("ccc_admin_auth");
   window.location.reload();
 }
 
-// Tab Switching
-function switchAdminTab(tabName) {
+// Tab Switching (Explicit Element Parameter Fix)
+function switchAdminTab(tabName, btnElement) {
   document.querySelectorAll(".admin-tab-btn").forEach(btn => btn.classList.remove("active"));
   document.querySelectorAll(".admin-section").forEach(sec => sec.classList.remove("active"));
 
-  event.currentTarget.classList.add("active");
+  if (btnElement) {
+    btnElement.classList.add("active");
+  }
   document.getElementById(`tab-${tabName}`).classList.add("active");
 }
 
@@ -75,8 +90,7 @@ function renderOrdersStream() {
   const container = document.getElementById("orders-stream-container");
   container.innerHTML = "";
 
-  // Sort by latest timestamp
-  const sorted = [...adminOrders].sort((a, b) => b.timestamp - a.timestamp);
+  const sorted = [...adminOrders].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
   if (sorted.length === 0) {
     container.innerHTML = `<p style="grid-column: 1/-1; color: #A39485; text-align: center; padding: 40px;">No incoming orders yet.</p>`;
@@ -84,8 +98,8 @@ function renderOrdersStream() {
   }
 
   sorted.forEach(order => {
-    const dateStr = new Date(order.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const itemsListHtml = order.items.map(i => `
+    const dateStr = new Date(order.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const itemsListHtml = (order.items || []).map(i => `
       <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:2px;">
         <span>${i.qty}x ${i.title}</span>
         <span>₹${i.price * i.qty}</span>
@@ -100,7 +114,7 @@ function renderOrdersStream() {
           <strong style="color:var(--royal-gold); font-size:0.95rem;">${order.orderId}</strong>
           <div style="font-size:0.7rem; color:#A39485;">${dateStr} • ${order.diningType} ${order.tableNo !== 'N/A' ? '(Table #' + order.tableNo + ')' : ''}</div>
         </div>
-        <span class="status-badge-pill status-${order.status.toLowerCase()}">${order.status}</span>
+        <span class="status-badge-pill status-${(order.status || 'received').toLowerCase()}">${order.status}</span>
       </div>
 
       <div>
@@ -134,11 +148,11 @@ function updateOrderStatus(orderId, newStatus) {
 // KPI Calculations
 function calculateKPIs() {
   const todayStart = new Date().setHours(0,0,0,0);
-  const todayOrders = adminOrders.filter(o => o.timestamp >= todayStart);
+  const todayOrders = adminOrders.filter(o => (o.timestamp || 0) >= todayStart);
 
   const totalSalesToday = todayOrders
     .filter(o => o.status !== "Cancelled")
-    .reduce((sum, o) => sum + o.totalAmount, 0);
+    .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
 
   const pendingCount = adminOrders.filter(o => ["Received", "Preparing", "Ready"].includes(o.status)).length;
   const completedCount = todayOrders.filter(o => o.status === "Completed").length;
@@ -248,28 +262,27 @@ function renderAdminCategoriesTable() {
   const tbody = document.getElementById("categories-table-body");
   tbody.innerHTML = "";
 
-  adminCategories.forEach((cat, index) => {
+  adminCategories.forEach((cat) => {
     if (cat === "All") return;
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td style="color:#FFF; font-weight:600;">${cat}</td>
       <td>
-        <button class="table-action-btn btn-delete" onclick="deleteCategory(${index})"><i class="fa-solid fa-trash"></i> Delete</button>
+        <button class="table-action-btn btn-delete" onclick="deleteCategoryByName('${cat}')"><i class="fa-solid fa-trash"></i> Delete</button>
       </td>
     `;
     tbody.appendChild(tr);
   });
 }
 
-function deleteCategory(index) {
-  if (confirm("Delete this category?")) {
-    const updated = [...adminCategories];
-    updated.splice(index, 1);
+function deleteCategoryByName(catName) {
+  if (confirm(`Delete "${catName}" category?`)) {
+    const updated = adminCategories.filter(c => c !== catName);
     db.ref("categories").set(updated);
   }
 }
 
-// 4. Analytics Calculations
+// 4. Analytics Calculations (Safeguarded against null data)
 function calculateAnalytics() {
   const now = Date.now();
   const dayMs = 86400000;
@@ -277,23 +290,27 @@ function calculateAnalytics() {
   const validOrders = adminOrders.filter(o => o.status === "Completed");
 
   const dailySales = validOrders
-    .filter(o => (now - o.timestamp) <= dayMs)
-    .reduce((sum, o) => sum + o.totalAmount, 0);
+    .filter(o => (now - (o.timestamp || 0)) <= dayMs)
+    .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
 
   const weeklySales = validOrders
-    .filter(o => (now - o.timestamp) <= (7 * dayMs))
-    .reduce((sum, o) => sum + o.totalAmount, 0);
+    .filter(o => (now - (o.timestamp || 0)) <= (7 * dayMs))
+    .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
 
   const monthlySales = validOrders
-    .filter(o => (now - o.timestamp) <= (30 * dayMs))
-    .reduce((sum, o) => sum + o.totalAmount, 0);
+    .filter(o => (now - (o.timestamp || 0)) <= (30 * dayMs))
+    .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
 
   // Best Selling Item Calculation
   const itemCounts = {};
   validOrders.forEach(o => {
-    o.items.forEach(i => {
-      itemCounts[i.title] = (itemCounts[i.title] || 0) + i.qty;
-    });
+    if (Array.isArray(o.items)) {
+      o.items.forEach(i => {
+        if (i && i.title) {
+          itemCounts[i.title] = (itemCounts[i.title] || 0) + (Number(i.qty) || 1);
+        }
+      });
+    }
   });
 
   let topItem = "N/A";
@@ -316,21 +333,24 @@ function listenToAdminSettings() {
   db.ref("settings").on("value", (snapshot) => {
     if (!snapshot.exists()) return;
     const data = snapshot.val();
-    document.getElementById("set-cafe-name").value = data.cafeName;
-    document.getElementById("set-tagline").value = data.tagline;
-    document.getElementById("set-logo-url").value = data.logoUrl;
-    document.getElementById("set-address").value = data.address;
-    document.getElementById("set-phone").value = data.contactPhone;
-    document.getElementById("set-packaging").value = data.packagingCharge;
+    document.getElementById("set-cafe-name").value = data.cafeName || "";
+    document.getElementById("set-tagline").value = data.tagline || "";
+    document.getElementById("set-logo-url").value = data.logoUrl || "";
+    document.getElementById("set-address").value = data.address || "";
+    document.getElementById("set-phone").value = data.contactPhone || "";
+    document.getElementById("set-packaging").value = data.packagingCharge || 0;
   });
 }
 
 // Setup Form Listeners
 function setupAdminForms() {
-  // Save Product Form
+  // Save Product Form (Preserves existing inStock state)
   document.getElementById("product-form").addEventListener("submit", (e) => {
     e.preventDefault();
     const id = document.getElementById("prod-id").value || ("prod_" + Date.now());
+    const existingProd = adminProducts.find(p => p.id === id);
+    const inStockVal = existingProd ? existingProd.inStock : true;
+
     const newProd = {
       id: id,
       title: document.getElementById("prod-title").value.trim(),
@@ -339,7 +359,7 @@ function setupAdminForms() {
       image: document.getElementById("prod-image").value.trim(),
       description: document.getElementById("prod-desc").value.trim(),
       isVeg: document.getElementById("prod-veg").value === "true",
-      inStock: true
+      inStock: inStockVal
     };
 
     db.ref("products/" + id).set(newProd, (err) => {
@@ -381,3 +401,4 @@ function setupAdminForms() {
     });
   });
 }
+
