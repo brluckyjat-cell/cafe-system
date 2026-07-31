@@ -93,7 +93,7 @@
       </button>
     </nav>
 
-    <!-- NAVIGATION TABS (Settings Tab Removed) -->
+    <!-- NAVIGATION TABS -->
     <div class="admin-tabs-bar">
       <button class="admin-tab-btn active" onclick="switchAdminTab('live-orders', this)">
         <i class="fa-solid fa-bell"></i> Live Orders
@@ -130,13 +130,21 @@
         </div>
       </div>
 
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
         <h3 class="royal-font" style="color:var(--royal-gold);">Incoming Orders Stream</h3>
-        <span style="font-size:0.8rem; color:#A39485;"><i class="fa-solid fa-bolt" style="color:var(--royal-gold);"></i> Instant Live Sync</span>
+        
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <!-- Point 5: Order Search Bar -->
+          <div style="position: relative; width: 240px;">
+            <input type="text" id="admin-order-search" class="form-control" placeholder="Search ID, Name, Phone..." oninput="handleAdminOrderSearch(this.value)" style="background: var(--dark-card); color: #FFF; border: 1px solid var(--border-gold); padding: 6px 10px 6px 30px; font-size: 0.82rem; border-radius: 6px;">
+            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--royal-gold); font-size: 0.8rem;"></i>
+          </div>
+          <span style="font-size:0.8rem; color:#A39485;"><i class="fa-solid fa-bolt" style="color:var(--royal-gold);"></i> Instant Live Sync</span>
+        </div>
       </div>
 
       <div class="order-stream-grid" id="orders-stream-container">
-        <!-- Dynamic Order Cards with iPhone Slide-to-Accept Slider -->
+        <!-- Dynamic Order Cards -->
       </div>
     </section>
 
