@@ -183,9 +183,12 @@ function calculateKPIs() {
 // 2. Admin Products CRUD
 function listenToAdminProducts() {
   db.ref("products").on("value", (snapshot) => {
-    if (!snapshot.exists()) return;
-    const data = snapshot.val();
-    adminProducts = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+    if (!snapshot.exists()) {
+      adminProducts = [];
+    } else {
+      const data = snapshot.val();
+      adminProducts = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+    }
     renderAdminProductsTable();
   });
 }
@@ -255,7 +258,10 @@ function populateCategorySelect(selectedCat = "") {
   const select = document.getElementById("prod-category");
   if (!select) return;
   select.innerHTML = "";
-  adminCategories.filter(c => c !== "All").forEach(cat => {
+  
+  const cats = (Array.isArray(adminCategories) && adminCategories.length > 0) ? adminCategories : (typeof DEFAULT_CATEGORIES !== 'undefined' ? DEFAULT_CATEGORIES : ["All", "Chai", "Coffee", "Pizza", "Burger", "Patties", "Cold Drinks", "Dessert", "Cigarette"]);
+  
+  cats.filter(c => c !== "All").forEach(cat => {
     const opt = document.createElement("option");
     opt.value = cat;
     opt.innerText = cat;
@@ -271,8 +277,13 @@ function closeProductModal() {
 // 3. Admin Categories CRUD
 function listenToAdminCategories() {
   db.ref("categories").on("value", (snapshot) => {
-    if (!snapshot.exists()) return;
-    adminCategories = snapshot.val();
+    if (!snapshot.exists()) {
+      const defaultCats = typeof DEFAULT_CATEGORIES !== 'undefined' ? DEFAULT_CATEGORIES : ["All", "Chai", "Coffee", "Pizza", "Burger", "Patties", "Cold Drinks", "Dessert", "Cigarette"];
+      db.ref("categories").set(defaultCats);
+      adminCategories = defaultCats;
+    } else {
+      adminCategories = snapshot.val();
+    }
     renderAdminCategoriesTable();
   });
 }
@@ -282,17 +293,19 @@ function renderAdminCategoriesTable() {
   if (!tbody) return;
   tbody.innerHTML = "";
 
-  adminCategories.forEach((cat) => {
-    if (cat === "All") return;
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td style="color:#FFF; font-weight:600;">${cat}</td>
-      <td>
-        <button class="table-action-btn btn-delete" onclick="deleteCategoryByName('${cat}')"><i class="fa-solid fa-trash"></i> Delete</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
+  if (Array.isArray(adminCategories)) {
+    adminCategories.forEach((cat) => {
+      if (cat === "All") return;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td style="color:#FFF; font-weight:600;">${cat}</td>
+        <td>
+          <button class="table-action-btn btn-delete" onclick="deleteCategoryByName('${cat}')"><i class="fa-solid fa-trash"></i> Delete</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
 }
 
 function deleteCategoryByName(catName) {
@@ -379,28 +392,44 @@ function setupAdminForms() {
   if (prodForm) {
     prodForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      const id = document.getElementById("prod-id").value || ("prod_" + Date.now());
+      
+      const prodIdInput = document.getElementById("prod-id").value;
+      const id = prodIdInput ? prodIdInput : ("prod_" + Date.now());
+      
       const existingProd = adminProducts.find(p => p.id === id);
-      const inStockVal = existingProd ? existingProd.inStock : true;
+      const inStockVal = existingProd ? (existingProd.inStock !== undefined ? Boolean(existingProd.inStock) : true) : true;
+
+      const titleVal = (document.getElementById("prod-title").value || "").trim();
+      const catVal = document.getElementById("prod-category").value || "Chai";
+      const priceVal = Number(document.getElementById("prod-price").value) || 0;
+      const imgVal = (document.getElementById("prod-image").value || "").trim();
+      const descVal = (document.getElementById("prod-desc").value || "").trim();
+      const isVegVal = document.getElementById("prod-veg").value === "true";
+
+      if (!titleVal || !imgVal || priceVal <= 0) {
+        alert("Please fill all required fields correctly!");
+        return;
+      }
 
       const newProd = {
         id: id,
-        title: document.getElementById("prod-title").value.trim(),
-        category: document.getElementById("prod-category").value,
-        price: Number(document.getElementById("prod-price").value),
-        image: document.getElementById("prod-image").value.trim(),
-        description: document.getElementById("prod-desc").value.trim(),
-        isVeg: document.getElementById("prod-veg").value === "true",
+        title: titleVal,
+        category: catVal,
+        price: priceVal,
+        image: imgVal,
+        description: descVal,
+        isVeg: isVegVal,
         inStock: inStockVal
       };
 
-      db.ref("products/" + id).set(newProd, (err) => {
-        if (!err) {
+      db.ref("products/" + id).set(newProd)
+        .then(() => {
           closeProductModal();
-        } else {
+          alert("New Product Added Successfully!");
+        })
+        .catch((err) => {
           alert("Error saving product: " + err.message);
-        }
-      });
+        });
     });
   }
 
@@ -438,5 +467,3 @@ function setupAdminForms() {
     });
   }
 }
-
-
