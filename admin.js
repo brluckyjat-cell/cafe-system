@@ -26,9 +26,9 @@ document.addEventListener("DOMContentLoaded", () => {
   setupBackgroundKeepAlive();
 });
 
-// Order Search Input Handler (Point 5)
+// Fixed Search Function (Safe String Check)
 function handleAdminOrderSearch(query) {
-  adminOrderSearchQuery = query.toLowerCase().trim();
+  adminOrderSearchQuery = (query || "").toString().toLowerCase().trim();
   renderOrdersStream();
 }
 
@@ -318,7 +318,7 @@ function handleSlideAccept(sliderInput, orderId) {
   }
 }
 
-// Render Orders Stream with Filter Support (Point 5)
+// Render Orders Stream with Safe Multi-Field Search Filter
 function renderOrdersStream() {
   const container = document.getElementById("orders-stream-container");
   if (!container) return;
@@ -326,14 +326,19 @@ function renderOrdersStream() {
 
   let sorted = [...adminOrders].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
-  // Search Filter Query Check
+  // Safe Search Filter Logic
   if (adminOrderSearchQuery) {
-    sorted = sorted.filter(o => 
-      (o.orderId && o.orderId.toLowerCase().includes(adminOrderSearchQuery)) ||
-      (o.customerName && o.customerName.toLowerCase().includes(adminOrderSearchQuery)) ||
-      (o.customerPhone && o.customerPhone.toLowerCase().includes(adminOrderSearchQuery)) ||
-      (o.tableNo && o.tableNo.toLowerCase().includes(adminOrderSearchQuery))
-    );
+    sorted = sorted.filter(o => {
+      const idStr = String(o.orderId || "").toLowerCase();
+      const nameStr = String(o.customerName || "").toLowerCase();
+      const phoneStr = String(o.customerPhone || "").toLowerCase();
+      const tableStr = String(o.tableNo || "").toLowerCase();
+
+      return idStr.includes(adminOrderSearchQuery) ||
+             nameStr.includes(adminOrderSearchQuery) ||
+             phoneStr.includes(adminOrderSearchQuery) ||
+             tableStr.includes(adminOrderSearchQuery);
+    });
   }
 
   if (sorted.length === 0) {
