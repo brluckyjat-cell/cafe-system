@@ -9,22 +9,22 @@ let selectedDiningType = "Dine-In";
 let packagingFee = 10;
 let trackingListener = null;
 
-const CURRENT_MENU_VER = "v2_the_cafe";
+const CURRENT_MENU_VER = "v3_the_cafe";
 
 document.addEventListener("DOMContentLoaded", () => {
   forceUpdateMenuIfNewVersion();
   initCustomerApp();
   setupEventListeners();
+  setupMultiTabSync();
 });
 
-// Force update menu data when new menu version is deployed
+// Bug 1 Fix: Safe version update that never overwrites existing custom admin edits
 function forceUpdateMenuIfNewVersion() {
-  if (localStorage.getItem("ccc_menu_version") !== CURRENT_MENU_VER) {
-    localStorage.removeItem("ccc_products");
-    localStorage.removeItem("ccc_categories");
+  const existingProds = localStorage.getItem("ccc_products");
+  if (localStorage.getItem("ccc_menu_version") !== CURRENT_MENU_VER || !existingProds) {
     localStorage.setItem("ccc_menu_version", CURRENT_MENU_VER);
 
-    if (typeof DEFAULT_MENU_ITEMS !== 'undefined') {
+    if (!existingProds && typeof DEFAULT_MENU_ITEMS !== 'undefined') {
       menuData = DEFAULT_MENU_ITEMS;
       localStorage.setItem("ccc_products", JSON.stringify(menuData));
       try {
@@ -34,7 +34,8 @@ function forceUpdateMenuIfNewVersion() {
       } catch(e){}
     }
 
-    if (typeof DEFAULT_CATEGORIES !== 'undefined') {
+    const existingCats = localStorage.getItem("ccc_categories");
+    if (!existingCats && typeof DEFAULT_CATEGORIES !== 'undefined') {
       categoriesData = DEFAULT_CATEGORIES;
       localStorage.setItem("ccc_categories", JSON.stringify(categoriesData));
       try { db.ref("categories").set(DEFAULT_CATEGORIES); } catch(e){}
@@ -48,6 +49,21 @@ function initCustomerApp() {
   listenToCategories();
   listenToProducts();
   checkActiveOrderTracking();
+}
+
+// Bug 9 Fix: Multi-tab synchronization across browser tabs
+function setupMultiTabSync() {
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'ccc_products' && e.newValue) {
+      try { menuData = JSON.parse(e.newValue); renderMenu(); } catch(err){}
+    }
+    if (e.key === 'ccc_categories' && e.newValue) {
+      try { categoriesData = JSON.parse(e.newValue); renderCategories(); } catch(err){}
+    }
+    if (e.key === 'ccc_settings' && e.newValue) {
+      try { applySettingsUI(JSON.parse(e.newValue)); } catch(err){}
+    }
+  });
 }
 
 // 1. Settings Listener
@@ -261,7 +277,6 @@ function updateCartTotals() {
   }
 }
 
-// Render Cart Modal List
 function renderCartModal() {
   const container = document.getElementById("cart-items-container");
   if (!container) return;
@@ -293,7 +308,6 @@ function renderCartModal() {
   });
 }
 
-// Dining Type Selection
 function selectDining(type) {
   selectedDiningType = type;
   const dineInTile = document.getElementById("opt-dinein");
@@ -314,7 +328,6 @@ function selectDining(type) {
   }
 }
 
-// Submit Order
 function submitOrder(e) {
   e.preventDefault();
   if (cart.length === 0) {
@@ -363,7 +376,6 @@ function submitOrder(e) {
   startLiveOrderTracking(orderId);
 }
 
-// Live Order Tracking Listener (Includes Cancelled Status Alert Fix)
 function startLiveOrderTracking(orderId) {
   if (trackingListener) {
     try { db.ref("orders/" + trackingListener).off(); } catch(e){}
@@ -399,8 +411,6 @@ function startLiveOrderTracking(orderId) {
 
 function updateStepperUI(status) {
   const steps = ["step-received", "step-preparing", "step-ready", "step-completed"];
-  
-  // Remove existing Cancelled Banner if any
   let cancelBanner = document.getElementById("track-cancelled-banner");
   if (cancelBanner) cancelBanner.remove();
 
@@ -508,3 +518,4 @@ function closeTrackingModal() {
   const modal = document.getElementById("tracking-modal");
   if (modal) modal.classList.remove("active");
 }
+
