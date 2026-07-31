@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Owner Dashboard | Chai Ceremony Cafe</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="admin-body">
+
+  <!-- ADMIN LOGIN OVERLAY -->
+  <div id="admin-login-modal" class="modal-overlay active" style="z-index: 999;">
+    <div class="modal-card" style="border-radius: var(--radius-lg);">
+      <div class="modal-header">
+        <div class="modal-title"><i class="fa-solid fa-lock"></i> Owner Portal Access</div>
+      </div>
+      <div class="modal-body">
+        <form id="admin-login-form">
+          <div class="form-group">
+            <label class="form-label">Admin Email</label>
+            <input type="email" id="admin-email" class="form-control" value="admin@chaiceremony.com" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" id="admin-password" class="form-control" value="admin123" required>
+          </div>
+          <button type="submit" class="btn-primary">
+            Login to Dashboard <i class="fa-solid fa-right-to-bracket"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN MAIN NAV -->
+  <nav class="admin-nav">
+    <div class="logo-wrap">
+      <img src="https://cdn-icons-png.flaticon.com/512/924/924514.png" class="logo-img" style="width:40px; height:40px;" alt="Logo">
+      <div>
+        <h2 class="royal-font" style="font-size: 1.1rem; color: var(--royal-gold);">Chai Ceremony Admin</h2>
+        <span style="font-size:0.7rem; color:#A39485;" id="live-clock">Live Sync Active</span>
+      </div>
+    </div>
+    <button onclick="adminLogout()" style="background:rgba(239,68,68,0.2); border:1px solid #EF4444; color:#EF4444; padding:6px 12px; border-radius:6px; font-size:0.8rem; cursor:pointer;">
+      <i class="fa-solid fa-power-off"></i> Logout
+    </button>
+  </nav>
+
+  <!-- NAVIGATION TABS -->
+  <div class="admin-tabs-bar">
+    <button class="admin-tab-btn active" onclick="switchAdminTab('live-orders')">
+      <i class="fa-solid fa-bell"></i> Live Orders
+    </button>
+    <button class="admin-tab-btn" onclick="switchAdminTab('products-mgr')">
+      <i class="fa-solid fa-mug-saucer"></i> Menu Items
+    </button>
+    <button class="admin-tab-btn" onclick="switchAdminTab('categories-mgr')">
+      <i class="fa-solid fa-list"></i> Categories
+    </button>
+    <button class="admin-tab-btn" onclick="switchAdminTab('analytics-mgr')">
+      <i class="fa-solid fa-chart-line"></i> Analytics & Reports
+    </button>
+    <button class="admin-tab-btn" onclick="switchAdminTab('settings-mgr')">
+      <i class="fa-solid fa-gear"></i> Cafe Settings
+    </button>
+  </div>
+
+  <!-- TAB 1: LIVE ORDERS DASHBOARD -->
+  <section id="tab-live-orders" class="admin-section active">
+    <!-- KPI SUMMARY CARDS -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-title">Today's Total Sales</div>
+        <div class="kpi-value" id="kpi-sales">₹0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Total Orders Today</div>
+        <div class="kpi-value" id="kpi-orders-count">0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Pending Orders</div>
+        <div class="kpi-value" style="color:#F59E0B;" id="kpi-pending">0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Completed Orders</div>
+        <div class="kpi-value" style="color:#10B981;" id="kpi-completed">0</div>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+      <h3 class="royal-font" style="color:var(--royal-gold);">Incoming Orders Stream</h3>
+      <span style="font-size:0.8rem; color:#A39485;">Real-Time Firebase Sync</span>
+    </div>
+
+    <div class="order-stream-grid" id="orders-stream-container">
+      <!-- Dynamic Order Cards -->
+    </div>
+  </section>
+
+  <!-- TAB 2: MENU PRODUCTS CRUD -->
+  <section id="tab-products-mgr" class="admin-section">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <h3 class="royal-font" style="color:var(--royal-gold);">Product Catalog</h3>
+      <button class="btn-primary" style="width:auto; padding:8px 16px;" onclick="openAddProductModal()">
+        <i class="fa-solid fa-plus"></i> Add New Product
+      </button>
+    </div>
+
+    <div class="data-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Type</th>
+            <th>Stock Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="products-table-body">
+          <!-- Dynamic Products Rows -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- TAB 3: CATEGORIES MANAGER -->
+  <section id="tab-categories-mgr" class="admin-section">
+    <h3 class="royal-font" style="color:var(--royal-gold); margin-bottom:16px;">Manage Menu Categories</h3>
+    
+    <div style="max-width:500px; margin-bottom:20px;">
+      <form id="add-category-form" style="display:flex; gap:10px;">
+        <input type="text" id="new-cat-input" class="form-control" placeholder="New Category Name..." required>
+        <button type="submit" class="btn-primary" style="width:auto; white-space:nowrap;">
+          <i class="fa-solid fa-plus"></i> Add
+        </button>
+      </form>
+    </div>
+
+    <div class="data-table-wrap" style="max-width: 600px;">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Category Name</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="categories-table-body">
+          <!-- Dynamic Categories Rows -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- TAB 4: ANALYTICS & REPORTS -->
+  <section id="tab-analytics-mgr" class="admin-section">
+    <h3 class="royal-font" style="color:var(--royal-gold); margin-bottom:16px;">Sales Reports & Revenue Metrics</h3>
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-title">Daily Sales</div>
+        <div class="kpi-value" id="report-daily-sales">₹0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Weekly Sales</div>
+        <div class="kpi-value" id="report-weekly-sales">₹0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Monthly Sales</div>
+        <div class="kpi-value" id="report-monthly-sales">₹0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Top Selling Item</div>
+        <div class="kpi-value" style="font-size:1.0rem; color:#FFF;" id="report-top-item">N/A</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 5: CAFE SETTINGS -->
+  <section id="tab-settings-mgr" class="admin-section">
+    <h3 class="royal-font" style="color:var(--royal-gold); margin-bottom:16px;">Cafe Details & System Config</h3>
+    
+    <div style="max-width: 600px; background:var(--dark-card); padding:20px; border-radius:var(--radius-md); border:1px solid var(--border-gold);">
+      <form id="settings-form">
+        <div class="form-group">
+          <label class="form-label">Cafe Name</label>
+          <input type="text" id="set-cafe-name" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tagline</label>
+          <input type="text" id="set-tagline" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Logo Image URL</label>
+          <input type="url" id="set-logo-url" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Address</label>
+          <input type="text" id="set-address" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contact Phone</label>
+          <input type="text" id="set-phone" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Packaging Charge (₹)</label>
+          <input type="number" id="set-packaging" class="form-control" min="0" required>
+        </div>
+        <button type="submit" class="btn-primary" style="margin-top:10px;">
+          Save Settings Updates
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ADD / EDIT PRODUCT MODAL -->
+  <div class="modal-overlay" id="product-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title" id="product-modal-title">Add New Product</div>
+        <button class="close-modal-btn" onclick="closeProductModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="product-form">
+          <input type="hidden" id="prod-id">
+          <div class="form-group">
+            <label class="form-label">Title *</label>
+            <input type="text" id="prod-title" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Category *</label>
+            <select id="prod-category" class="form-control" required></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Price (₹) *</label>
+            <input type="number" id="prod-price" class="form-control" min="1" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Image URL *</label>
+            <input type="url" id="prod-image" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea id="prod-desc" class="form-control" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Food Type</label>
+            <select id="prod-veg" class="form-control">
+              <option value="true">Veg</option>
+              <option value="false">Non-Veg</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-primary" id="save-product-btn">
+            Save Product
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase Compat Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+  <!-- Admin Application Logic -->
+  <script src="firebase-config.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
