@@ -7,9 +7,10 @@ let knownOrderIds = new Set();
 let pageLoadTime = Date.now();
 let isAudioUnlocked = false;
 let wakeLock = null;
+let adminOrderSearchQuery = "";
 
 const CURRENT_MENU_VER = "v2_the_cafe";
-const AUTH_HASH = "YWRtaW5AY2hhaWNlcmVtb255LmNvbTphZG1pbjEyMw=="; // Base64 Secure Token
+const AUTH_HASH = "YWRtaW5AY2hhaWNlcmVtb255LmNvbTphZG1pbjEyMw==";
 
 // 3-Second High Quality Ringtone Audio with Continuous Looping
 const notificationAudio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
@@ -24,6 +25,12 @@ document.addEventListener("DOMContentLoaded", () => {
   bindGlobalUnlockEvents();
   setupBackgroundKeepAlive();
 });
+
+// Order Search Input Handler (Point 5)
+function handleAdminOrderSearch(query) {
+  adminOrderSearchQuery = query.toLowerCase().trim();
+  renderOrdersStream();
+}
 
 // Force update menu data when new menu version is deployed
 function forceUpdateMenuIfNewVersion() {
@@ -50,7 +57,7 @@ function forceUpdateMenuIfNewVersion() {
   }
 }
 
-// Background Anti-Sleep & Wake Lock Engine
+// Background Anti-Sleep Engine
 async function requestWakeLock() {
   try {
     if ('wakeLock' in navigator) {
@@ -115,7 +122,6 @@ function evaluateAudioLoop() {
   }
 }
 
-// Play Tone
 function playOrderNotificationTone() {
   try {
     if (notificationAudio.paused) {
@@ -130,7 +136,6 @@ function playOrderNotificationTone() {
   }
 }
 
-// Stop Tone
 function stopOrderNotificationTone() {
   try {
     notificationAudio.pause();
@@ -138,7 +143,6 @@ function stopOrderNotificationTone() {
   } catch(e){}
 }
 
-// Synthesizer Chime Fallback
 function playSynthesizerChime() {
   try {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -163,7 +167,6 @@ function playSynthesizerChime() {
   } catch(e){}
 }
 
-// Push Banner Notification
 function requestNotificationPermission() {
   if ("Notification" in window && Notification.permission !== "granted") {
     Notification.requestPermission();
@@ -180,7 +183,6 @@ function sendPushNotification(orderId, customerName) {
   }
 }
 
-// Clock
 function startClock() {
   setInterval(() => {
     const el = document.getElementById("live-clock");
@@ -191,7 +193,6 @@ function startClock() {
   }, 1000);
 }
 
-// Authentication & Hashed Session Verification
 function setupAdminAuth() {
   const form = document.getElementById("admin-login-form");
   if (!form) return;
@@ -235,7 +236,6 @@ function adminLogout() {
   window.location.reload();
 }
 
-// Tab Switching
 function switchAdminTab(tabName, btnElement) {
   document.querySelectorAll(".admin-tab-btn").forEach(btn => btn.classList.remove("active"));
   document.querySelectorAll(".admin-section").forEach(sec => sec.classList.remove("active"));
@@ -247,7 +247,6 @@ function switchAdminTab(tabName, btnElement) {
   if (targetSection) targetSection.classList.add("active");
 }
 
-// Init Realtime Firebase Sync
 function initAdminDashboard() {
   listenToLiveOrders();
   listenToAdminProducts();
@@ -313,22 +312,32 @@ function listenToLiveOrders() {
   });
 }
 
-// iPhone Slide to Accept Handler
 function handleSlideAccept(sliderInput, orderId) {
   if (sliderInput.value >= 85) {
     updateOrderStatus(orderId, 'Preparing');
   }
 }
 
+// Render Orders Stream with Filter Support (Point 5)
 function renderOrdersStream() {
   const container = document.getElementById("orders-stream-container");
   if (!container) return;
   container.innerHTML = "";
 
-  const sorted = [...adminOrders].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+  let sorted = [...adminOrders].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+  // Search Filter Query Check
+  if (adminOrderSearchQuery) {
+    sorted = sorted.filter(o => 
+      (o.orderId && o.orderId.toLowerCase().includes(adminOrderSearchQuery)) ||
+      (o.customerName && o.customerName.toLowerCase().includes(adminOrderSearchQuery)) ||
+      (o.customerPhone && o.customerPhone.toLowerCase().includes(adminOrderSearchQuery)) ||
+      (o.tableNo && o.tableNo.toLowerCase().includes(adminOrderSearchQuery))
+    );
+  }
 
   if (sorted.length === 0) {
-    container.innerHTML = `<p style="grid-column: 1/-1; color: #A39485; text-align: center; padding: 40px;">No incoming orders yet.</p>`;
+    container.innerHTML = `<p style="grid-column: 1/-1; color: #A39485; text-align: center; padding: 40px;">${adminOrderSearchQuery ? 'No matching orders found.' : 'No incoming orders yet.'}</p>`;
     return;
   }
 
@@ -402,7 +411,6 @@ function updateOrderStatus(orderId, newStatus) {
   try { db.ref("orders/" + orderId).update({ status: newStatus }); } catch(e){}
 }
 
-// KPI Calculations
 function calculateKPIs() {
   const todayStart = new Date().setHours(0,0,0,0);
   const todayOrders = adminOrders.filter(o => (o.timestamp || 0) >= todayStart);
@@ -425,7 +433,6 @@ function calculateKPIs() {
   if (completedEl) completedEl.innerText = completedCount;
 }
 
-// Expanded AI Auto-Image Detector (All Food Keywords Supported)
 function autoDetectProductImage(title, category) {
   const text = (title + " " + category).toLowerCase();
 
@@ -458,7 +465,6 @@ function autoDetectProductImage(title, category) {
   return "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=600&q=80";
 }
 
-// 2. Admin Products CRUD
 function listenToAdminProducts() {
   const localProds = localStorage.getItem("ccc_products");
   if (localProds) {
@@ -567,7 +573,6 @@ function closeProductModal() {
   document.getElementById("product-modal").classList.remove("active");
 }
 
-// 3. Admin Categories CRUD
 function listenToAdminCategories() {
   const localCats = localStorage.getItem("ccc_categories");
   if (localCats) {
@@ -615,7 +620,6 @@ function deleteCategoryByName(catName) {
   }
 }
 
-// 4. Analytics Calculations
 function calculateAnalytics() {
   const now = Date.now();
   const dayMs = 86400000;
@@ -665,7 +669,6 @@ function calculateAnalytics() {
   if (topEl) topEl.innerText = topItem;
 }
 
-// Setup Form Listeners
 function setupAdminForms() {
   const prodForm = document.getElementById("product-form");
   if (prodForm) {
