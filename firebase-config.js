@@ -1,7 +1,7 @@
 // Chai Ceremony Cafe - Firebase Initialization & Database Reference
-// Using Firebase Compat SDK for seamless browser CDN deployment
 
 const firebaseConfig = {
+  // Replace these with your real Firebase Console values when ready
   apiKey: "AIzaSyB_YourActualApiKeyHere_ChaiCeremony",
   authDomain: "chai-ceremony-cafe.firebaseapp.com",
   databaseURL: "https://chai-ceremony-cafe-default-rtdb.firebaseio.com",
@@ -11,7 +11,7 @@ const firebaseConfig = {
   appId: "1:123456789012:web:abcdef1234567890"
 };
 
-// Initialize Firebase if not already initialized
+// Initialize Firebase safely
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
@@ -19,7 +19,7 @@ if (!firebase.apps.length) {
 const db = firebase.database();
 const auth = firebase.auth();
 
-// Default Menu Seed Data (Initializes DB if empty on first load)
+// Default Seed Data
 const DEFAULT_MENU_ITEMS = [
   {
     id: "prod_1",
