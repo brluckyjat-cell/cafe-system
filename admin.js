@@ -9,7 +9,7 @@ let isAudioUnlocked = false;
 let wakeLock = null;
 let adminOrderSearchQuery = "";
 
-const CURRENT_MENU_VER = "v2_the_cafe";
+const CURRENT_MENU_VER = "v3_the_cafe";
 const AUTH_HASH = "YWRtaW5AY2hhaWNlcmVtb255LmNvbTphZG1pbjEyMw==";
 
 // 3-Second High Quality Ringtone Audio with Continuous Looping
@@ -24,22 +24,46 @@ document.addEventListener("DOMContentLoaded", () => {
   setupAdminForms();
   bindGlobalUnlockEvents();
   setupBackgroundKeepAlive();
+  setupAdminMultiTabSync();
+  setupBrowserBackButtonSecurity();
 });
 
-// Fixed Search Function (Safe String Check)
+// Bug 8 Fix: Prevent Browser Back-button logout bypass
+function setupBrowserBackButtonSecurity() {
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+      checkSession();
+    }
+  });
+}
+
+// Bug 9 Fix: Admin multi-tab live sync
+function setupAdminMultiTabSync() {
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'ccc_products' && e.newValue) {
+      try { adminProducts = JSON.parse(e.newValue); renderAdminProductsTable(); } catch(err){}
+    }
+    if (e.key === 'ccc_categories' && e.newValue) {
+      try { adminCategories = JSON.parse(e.newValue); renderAdminCategoriesTable(); } catch(err){}
+    }
+    if (e.key === 'ccc_orders' && e.newValue) {
+      try { adminOrders = JSON.parse(e.newValue); renderOrdersStream(); calculateKPIs(); calculateAnalytics(); } catch(err){}
+    }
+  });
+}
+
 function handleAdminOrderSearch(query) {
   adminOrderSearchQuery = (query || "").toString().toLowerCase().trim();
   renderOrdersStream();
 }
 
-// Force update menu data when new menu version is deployed
+// Bug 1 Fix: Safe initialization that preserves existing admin product/category updates
 function forceUpdateMenuIfNewVersion() {
-  if (localStorage.getItem("ccc_menu_version") !== CURRENT_MENU_VER) {
-    localStorage.removeItem("ccc_products");
-    localStorage.removeItem("ccc_categories");
+  const existingProds = localStorage.getItem("ccc_products");
+  if (localStorage.getItem("ccc_menu_version") !== CURRENT_MENU_VER || !existingProds) {
     localStorage.setItem("ccc_menu_version", CURRENT_MENU_VER);
 
-    if (typeof DEFAULT_MENU_ITEMS !== 'undefined') {
+    if (!existingProds && typeof DEFAULT_MENU_ITEMS !== 'undefined') {
       adminProducts = DEFAULT_MENU_ITEMS;
       localStorage.setItem("ccc_products", JSON.stringify(adminProducts));
       try {
@@ -49,7 +73,8 @@ function forceUpdateMenuIfNewVersion() {
       } catch(e){}
     }
 
-    if (typeof DEFAULT_CATEGORIES !== 'undefined') {
+    const existingCats = localStorage.getItem("ccc_categories");
+    if (!existingCats && typeof DEFAULT_CATEGORIES !== 'undefined') {
       adminCategories = DEFAULT_CATEGORIES;
       localStorage.setItem("ccc_categories", JSON.stringify(adminCategories));
       try { db.ref("categories").set(DEFAULT_CATEGORIES); } catch(e){}
@@ -57,7 +82,6 @@ function forceUpdateMenuIfNewVersion() {
   }
 }
 
-// Background Anti-Sleep Engine
 async function requestWakeLock() {
   try {
     if ('wakeLock' in navigator) {
@@ -89,7 +113,6 @@ function setupBackgroundKeepAlive() {
   } catch(e){}
 }
 
-// Unlock Audio Context
 function unlockAudioSystem() {
   if (!isAudioUnlocked) {
     notificationAudio.play().then(() => {
@@ -112,7 +135,6 @@ function bindGlobalUnlockEvents() {
   document.addEventListener('touchstart', unlocker);
 }
 
-// Single Instance Audio Loop Evaluator
 function evaluateAudioLoop() {
   const hasUnacceptedOrder = adminOrders.some(o => o.status === 'Received');
   if (hasUnacceptedOrder) {
@@ -218,6 +240,11 @@ function setupAdminAuth() {
 function checkSession() {
   if (sessionStorage.getItem("ccc_admin_token") === AUTH_HASH) {
     unlockAdminDashboard();
+  } else {
+    const loginScreen = document.getElementById("admin-login-screen");
+    const dashContainer = document.getElementById("admin-dashboard-container");
+    if (loginScreen) loginScreen.style.display = "flex";
+    if (dashContainer) dashContainer.style.display = "none";
   }
 }
 
@@ -233,7 +260,7 @@ function unlockAdminDashboard() {
 
 function adminLogout() {
   sessionStorage.removeItem("ccc_admin_token");
-  window.location.reload();
+  window.location.href = window.location.pathname;
 }
 
 function switchAdminTab(tabName, btnElement) {
@@ -264,7 +291,6 @@ function syncDataFromLocal() {
   } catch(e){}
 }
 
-// 1. Live Orders Listener
 function listenToLiveOrders() {
   syncDataFromLocal();
 
@@ -318,7 +344,6 @@ function handleSlideAccept(sliderInput, orderId) {
   }
 }
 
-// Render Orders Stream with Safe Multi-Field Search Filter
 function renderOrdersStream() {
   const container = document.getElementById("orders-stream-container");
   if (!container) return;
@@ -326,7 +351,6 @@ function renderOrdersStream() {
 
   let sorted = [...adminOrders].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
-  // Safe Search Filter Logic
   if (adminOrderSearchQuery) {
     sorted = sorted.filter(o => {
       const idStr = String(o.orderId || "").toLowerCase();
@@ -384,23 +408,28 @@ function renderOrdersStream() {
       </div>
 
       ${isNewIncoming ? `
-        <!-- iPhone Call Pickup Slide-to-Accept -->
         <div class="ios-slider-box">
           <span class="ios-slider-text">Slide to Accept Order ➔</span>
           <input type="range" min="0" max="100" value="0" class="ios-range-input" oninput="handleSlideAccept(this, '${order.orderId}')">
         </div>
-        <button class="btn-status-action btn-cancel" style="margin-top:6px; width:100%;" onclick="updateOrderStatus('${order.orderId}', 'Cancelled')">Cancel Order</button>
+        <button class="btn-status-action btn-cancel" style="margin-top:6px; width:100%;" onclick="confirmCancelOrder('${order.orderId}')">Cancel Order</button>
       ` : `
-        <!-- Standard Order Action Stream -->
         <div class="action-btn-group">
           ${order.status === 'Preparing' ? `<button class="btn-status-action btn-ready" onclick="updateOrderStatus('${order.orderId}', 'Ready')">Mark Ready</button>` : ''}
           ${order.status === 'Ready' ? `<button class="btn-status-action btn-complete" onclick="updateOrderStatus('${order.orderId}', 'Completed')">Complete Order</button>` : ''}
-          ${order.status !== 'Completed' && order.status !== 'Cancelled' ? `<button class="btn-status-action btn-cancel" onclick="updateOrderStatus('${order.orderId}', 'Cancelled')">Cancel Order</button>` : ''}
+          ${order.status !== 'Completed' && order.status !== 'Cancelled' ? `<button class="btn-status-action btn-cancel" onclick="confirmCancelOrder('${order.orderId}')">Cancel Order</button>` : ''}
         </div>
       `}
     `;
     container.appendChild(card);
   });
+}
+
+// Bug 3 Fix: Strict delete and cancel confirmations
+function confirmCancelOrder(orderId) {
+  if (confirm(`Are you sure you want to cancel order #${orderId}?`)) {
+    updateOrderStatus(orderId, 'Cancelled');
+  }
 }
 
 function updateOrderStatus(orderId, newStatus) {
@@ -509,7 +538,7 @@ function renderAdminProductsTable() {
       </td>
       <td>
         <button class="table-action-btn btn-edit" onclick="editProduct('${prod.id}')"><i class="fa-solid fa-pen"></i></button>
-        <button class="table-action-btn btn-delete" onclick="deleteProduct('${prod.id}')"><i class="fa-solid fa-trash"></i></button>
+        <button class="table-action-btn btn-delete" onclick="confirmDeleteProduct('${prod.id}')"><i class="fa-solid fa-trash"></i></button>
       </td>
     `;
     tbody.appendChild(tr);
@@ -522,17 +551,21 @@ function toggleStock(productId, newStatus) {
     adminProducts[index].inStock = newStatus;
     localStorage.setItem("ccc_products", JSON.stringify(adminProducts));
     renderAdminProductsTable();
+    try { db.ref("products/" + productId).update({ inStock: newStatus }); } catch(e){}
   }
-  try { db.ref("products/" + productId).update({ inStock: newStatus }); } catch(e){}
+}
+
+function confirmDeleteProduct(productId) {
+  if (confirm("Are you sure you want to delete this product?")) {
+    deleteProduct(productId);
+  }
 }
 
 function deleteProduct(productId) {
-  if (confirm("Are you sure you want to delete this product?")) {
-    adminProducts = adminProducts.filter(p => p.id !== productId);
-    localStorage.setItem("ccc_products", JSON.stringify(adminProducts));
-    renderAdminProductsTable();
-    try { db.ref("products/" + productId).remove(); } catch(e){}
-  }
+  adminProducts = adminProducts.filter(p => p.id !== productId);
+  localStorage.setItem("ccc_products", JSON.stringify(adminProducts));
+  renderAdminProductsTable();
+  try { db.ref("products/" + productId).remove(); } catch(e){}
 }
 
 function openAddProductModal() {
@@ -608,7 +641,7 @@ function renderAdminCategoriesTable() {
       tr.innerHTML = `
         <td style="color:#FFF; font-weight:600;">${cat}</td>
         <td>
-          <button class="table-action-btn btn-delete" onclick="deleteCategoryByName('${cat}')"><i class="fa-solid fa-trash"></i> Delete</button>
+          <button class="table-action-btn btn-delete" onclick="confirmDeleteCategory('${cat}')"><i class="fa-solid fa-trash"></i> Delete</button>
         </td>
       `;
       tbody.appendChild(tr);
@@ -616,12 +649,31 @@ function renderAdminCategoriesTable() {
   }
 }
 
+// Bug 7 Fix: Reassign orphan products to a fallback category when category is deleted
+function confirmDeleteCategory(catName) {
+  if (confirm(`Delete "${catName}" category? Associated products will be reassigned to Tea Special.`)) {
+    deleteCategoryByName(catName);
+  }
+}
+
 function deleteCategoryByName(catName) {
-  if (confirm(`Delete "${catName}" category?`)) {
-    adminCategories = adminCategories.filter(c => c !== catName);
-    localStorage.setItem("ccc_categories", JSON.stringify(adminCategories));
-    renderAdminCategoriesTable();
-    try { db.ref("categories").set(adminCategories); } catch(e){}
+  adminCategories = adminCategories.filter(c => c !== catName);
+  localStorage.setItem("ccc_categories", JSON.stringify(adminCategories));
+  renderAdminCategoriesTable();
+  try { db.ref("categories").set(adminCategories); } catch(e){}
+
+  // Reassign orphan products
+  let updated = false;
+  adminProducts.forEach(p => {
+    if (p.category === catName) {
+      p.category = "Tea Special";
+      updated = true;
+      try { db.ref("products/" + p.id).update({ category: "Tea Special" }); } catch(e){}
+    }
+  });
+  if (updated) {
+    localStorage.setItem("ccc_products", JSON.stringify(adminProducts));
+    renderAdminProductsTable();
   }
 }
 
@@ -681,21 +733,35 @@ function setupAdminForms() {
       e.preventDefault();
       
       const prodIdInput = document.getElementById("prod-id").value;
-      const id = prodIdInput ? prodIdInput : ("prod_" + Date.now());
-      
-      const existingProd = adminProducts.find(p => p.id === id);
-      const inStockVal = existingProd ? (existingProd.inStock !== undefined ? Boolean(existingProd.inStock) : true) : true;
-
       const titleVal = (document.getElementById("prod-title").value || "").trim();
       const catVal = document.getElementById("prod-category").value || "Tea Special";
-      const priceVal = Number(document.getElementById("prod-price").value) || 0;
+      const rawPrice = document.getElementById("prod-price").value;
+      const priceVal = Number(rawPrice);
       const descVal = (document.getElementById("prod-desc").value || "").trim();
       const isVegVal = document.getElementById("prod-veg").value === "true";
 
-      if (!titleVal || priceVal <= 0) {
-        alert("Please enter a valid title and price!");
+      // Bug 4 Fix: Empty form submission prevention
+      if (!titleVal) {
+        alert("Product title cannot be empty!");
         return;
       }
+
+      // Bug 6 Fix: Price letters & negative value validation
+      if (isNaN(priceVal) || priceVal <= 0 || !isFinite(priceVal) || /e|\+|\-/i.test(rawPrice)) {
+        alert("Please enter a valid positive price number!");
+        return;
+      }
+
+      // Bug 5 Fix: Prevent duplicate product addition
+      const duplicateProduct = adminProducts.find(p => p.title.toLowerCase() === titleVal.toLowerCase() && p.id !== prodIdInput);
+      if (duplicateProduct) {
+        alert("A product with this title already exists!");
+        return;
+      }
+
+      const id = prodIdInput ? prodIdInput : ("prod_" + Date.now());
+      const existingProd = adminProducts.find(p => p.id === id);
+      const inStockVal = existingProd ? (existingProd.inStock !== undefined ? Boolean(existingProd.inStock) : true) : true;
 
       const autoImage = autoDetectProductImage(titleVal, catVal);
 
@@ -716,6 +782,8 @@ function setupAdminForms() {
       } else {
         adminProducts.push(newProd);
       }
+      
+      // Bug 2 Fix: Immediate persistent sync
       localStorage.setItem("ccc_products", JSON.stringify(adminProducts));
       renderAdminProductsTable();
       closeProductModal();
@@ -730,15 +798,25 @@ function setupAdminForms() {
     catForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const catInput = document.getElementById("new-cat-input");
-      const val = catInput.value.trim();
-      if (val && !adminCategories.includes(val)) {
-        adminCategories.push(val);
-        localStorage.setItem("ccc_categories", JSON.stringify(adminCategories));
-        renderAdminCategoriesTable();
-        catInput.value = "";
-        try { db.ref("categories").set(adminCategories); } catch(e){}
+      const val = (catInput.value || "").trim();
+      
+      if (!val) {
+        alert("Category name cannot be empty!");
+        return;
       }
+
+      if (adminCategories.some(c => c.toLowerCase() === val.toLowerCase())) {
+        alert("Category already exists!");
+        return;
+      }
+
+      adminCategories.push(val);
+      localStorage.setItem("ccc_categories", JSON.stringify(adminCategories));
+      renderAdminCategoriesTable();
+      catInput.value = "";
+      try { db.ref("categories").set(adminCategories); } catch(e){}
     });
   }
 }
+
 
