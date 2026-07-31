@@ -6,6 +6,49 @@
   <title>Owner Dashboard | Chai Ceremony Cafe</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* iOS Style Slide-to-Accept Slider Styling */
+    .ios-slider-box {
+      position: relative;
+      background: linear-gradient(90deg, rgba(200, 90, 50, 0.2), rgba(212, 175, 55, 0.2));
+      border: 1.5px solid var(--royal-gold);
+      border-radius: 30px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      margin-top: 10px;
+      user-select: none;
+    }
+
+    .ios-slider-text {
+      color: var(--royal-gold);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      pointer-events: none;
+      animation: pulseText 1.5s infinite;
+    }
+
+    @keyframes pulseText {
+      0% { opacity: 0.4; }
+      50% { opacity: 1; }
+      100% { opacity: 0.4; }
+    }
+
+    .ios-range-input {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+      z-index: 10;
+    }
+  </style>
 </head>
 <body class="admin-body">
 
@@ -50,7 +93,7 @@
       </button>
     </nav>
 
-    <!-- NAVIGATION TABS -->
+    <!-- NAVIGATION TABS (Settings Tab Removed) -->
     <div class="admin-tabs-bar">
       <button class="admin-tab-btn active" onclick="switchAdminTab('live-orders', this)">
         <i class="fa-solid fa-bell"></i> Live Orders
@@ -63,9 +106,6 @@
       </button>
       <button class="admin-tab-btn" onclick="switchAdminTab('analytics-mgr', this)">
         <i class="fa-solid fa-chart-line"></i> Analytics & Reports
-      </button>
-      <button class="admin-tab-btn" onclick="switchAdminTab('settings-mgr', this)">
-        <i class="fa-solid fa-gear"></i> Cafe Settings
       </button>
     </div>
 
@@ -96,7 +136,7 @@
       </div>
 
       <div class="order-stream-grid" id="orders-stream-container">
-        <!-- Dynamic Order Cards -->
+        <!-- Dynamic Order Cards with iPhone Slide-to-Accept Slider -->
       </div>
     </section>
 
@@ -180,46 +220,9 @@
         </div>
       </div>
     </section>
-
-    <!-- TAB 5: CAFE SETTINGS -->
-    <section id="tab-settings-mgr" class="admin-section">
-      <h3 class="royal-font" style="color:var(--royal-gold); margin-bottom:16px;">Cafe Details & System Config</h3>
-      
-      <div style="max-width: 600px; background:var(--dark-card); padding:20px; border-radius:var(--radius-md); border:1px solid var(--border-gold);">
-        <form id="settings-form">
-          <div class="form-group">
-            <label class="form-label">Cafe Name</label>
-            <input type="text" id="set-cafe-name" class="form-control" required style="background:#120A09; color:#FFF;">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Tagline</label>
-            <input type="text" id="set-tagline" class="form-control" required style="background:#120A09; color:#FFF;">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Logo Image URL</label>
-            <input type="text" id="set-logo-url" class="form-control" required style="background:#120A09; color:#FFF;">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Address</label>
-            <input type="text" id="set-address" class="form-control" required style="background:#120A09; color:#FFF;">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Contact Phone</label>
-            <input type="text" id="set-phone" class="form-control" required style="background:#120A09; color:#FFF;">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Packaging Charge (₹)</label>
-            <input type="number" id="set-packaging" class="form-control" min="0" required style="background:#120A09; color:#FFF;">
-          </div>
-          <button type="submit" class="btn-primary" style="margin-top:10px;">
-            Save Settings Updates
-          </button>
-        </form>
-      </div>
-    </section>
   </div>
 
-  <!-- ADD / EDIT PRODUCT MODAL (No Image Field Needed) -->
+  <!-- ADD / EDIT PRODUCT MODAL -->
   <div class="modal-overlay" id="product-modal">
     <div class="modal-card">
       <div class="modal-header">
@@ -270,4 +273,3 @@
   <script src="admin.js"></script>
 </body>
 </html>
-
