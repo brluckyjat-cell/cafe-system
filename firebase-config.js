@@ -1,14 +1,14 @@
-
-// Chai Ceremony Cafe - Firebase Config & Hybrid Storage Helper
+// Chai Ceremony Cafe - Realtime Cloud Firebase Configuration
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB_YourActualApiKeyHere_ChaiCeremony",
-  authDomain: "chai-ceremony-cafe.firebaseapp.com",
-  databaseURL: "https://chai-ceremony-cafe-default-rtdb.firebaseio.com",
-  projectId: "chai-ceremony-cafe",
-  storageBucket: "chai-ceremony-cafe.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdef1234567890"
+  apiKey: "AIzaSyBbxtIQ8OkNC9f4rDAG42mo-r3AllDr2YI",
+  authDomain: "my-cafe-app-fb7ba.firebaseapp.com",
+  databaseURL: "https://my-cafe-app-fb7ba-default-rtdb.firebaseio.com",
+  projectId: "my-cafe-app-fb7ba",
+  storageBucket: "my-cafe-app-fb7ba.firebasestorage.app",
+  messagingSenderId: "227548526389",
+  appId: "1:227548526389:web:e20f674879277ddf12fe7c",
+  measurementId: "G-SP32DJ8042"
 };
 
 // Initialize Firebase safely
@@ -115,3 +115,4 @@ const DEFAULT_SETTINGS = {
   packagingCharge: 10,
   logoUrl: "https://cdn-icons-png.flaticon.com/512/924/924514.png"
 };
+
