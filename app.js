@@ -24,59 +24,83 @@ function initCustomerApp() {
 
 // 1. Settings Listener
 function listenToSettings() {
+  const localSet = localStorage.getItem("ccc_settings");
+  if (localSet) {
+    try { applySettingsUI(JSON.parse(localSet)); } catch(e){}
+  }
+
   db.ref("settings").on("value", (snapshot) => {
     const data = snapshot.val() || DEFAULT_SETTINGS;
-    if (!snapshot.exists()) {
-      db.ref("settings").set(DEFAULT_SETTINGS);
-    }
-    document.getElementById("cafe-name").innerText = data.cafeName;
-    document.getElementById("cafe-tagline").innerText = data.tagline;
-    document.getElementById("cafe-logo").src = data.logoUrl;
-    document.getElementById("footer-address").innerText = data.address;
-    document.getElementById("footer-phone").innerText = "Contact: " + data.contactPhone;
-    packagingFee = Number(data.packagingCharge) || 10;
-    document.getElementById("packaging-val").innerText = `₹${packagingFee}`;
-    updateCartTotals();
+    localStorage.setItem("ccc_settings", JSON.stringify(data));
+    applySettingsUI(data);
   });
+}
+
+function applySettingsUI(data) {
+  document.getElementById("cafe-name").innerText = data.cafeName || "Chai Ceremony Cafe";
+  document.getElementById("cafe-tagline").innerText = data.tagline || "Sip • Relax • Connect";
+  document.getElementById("cafe-logo").src = data.logoUrl || "https://cdn-icons-png.flaticon.com/512/924/924514.png";
+  document.getElementById("footer-address").innerText = data.address || "";
+  document.getElementById("footer-phone").innerText = "Contact: " + (data.contactPhone || "");
+  packagingFee = Number(data.packagingCharge) || 10;
+  document.getElementById("packaging-val").innerText = `₹${packagingFee}`;
+  updateCartTotals();
 }
 
 // 2. Categories Listener
 function listenToCategories() {
+  const localCats = localStorage.getItem("ccc_categories");
+  if (localCats) {
+    try {
+      categoriesData = JSON.parse(localCats);
+      renderCategories();
+    } catch(e){}
+  }
+
   db.ref("categories").on("value", (snapshot) => {
-    if (!snapshot.exists()) {
-      db.ref("categories").set(DEFAULT_CATEGORIES);
-      categoriesData = DEFAULT_CATEGORIES;
-    } else {
+    if (snapshot.exists()) {
       categoriesData = snapshot.val();
+    } else if (!localCats) {
+      categoriesData = DEFAULT_CATEGORIES;
     }
+    localStorage.setItem("ccc_categories", JSON.stringify(categoriesData));
     renderCategories();
   });
 }
 
 // 3. Products Listener
 function listenToProducts() {
+  const localProds = localStorage.getItem("ccc_products");
+  if (localProds) {
+    try {
+      menuData = JSON.parse(localProds);
+      renderMenu();
+    } catch(e){}
+  }
+
   db.ref("products").on("value", (snapshot) => {
-    if (!snapshot.exists()) {
-      // Seed Database with initial menu items
-      const seedObj = {};
-      DEFAULT_MENU_ITEMS.forEach(item => {
-        seedObj[item.id] = item;
-      });
-      db.ref("products").set(seedObj);
-      menuData = DEFAULT_MENU_ITEMS;
-    } else {
+    if (snapshot.exists()) {
       const data = snapshot.val();
       menuData = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+      localStorage.setItem("ccc_products", JSON.stringify(menuData));
+      renderMenu();
+    } else if (!localProds) {
+      menuData = DEFAULT_MENU_ITEMS;
+      localStorage.setItem("ccc_products", JSON.stringify(menuData));
+      renderMenu();
     }
-    renderMenu();
   });
 }
 
 // Render Categories
 function renderCategories() {
   const container = document.getElementById("category-pills");
+  if (!container) return;
   container.innerHTML = "";
-  categoriesData.forEach(cat => {
+  
+  const cats = categoriesData.length > 0 ? categoriesData : DEFAULT_CATEGORIES;
+
+  cats.forEach(cat => {
     const btn = document.createElement("button");
     btn.className = `pill-btn ${cat === activeCategory ? 'active' : ''}`;
     btn.innerText = cat;
@@ -93,12 +117,13 @@ function renderCategories() {
 // Render Menu
 function renderMenu() {
   const container = document.getElementById("menu-grid");
+  if (!container) return;
   container.innerHTML = "";
 
   const filtered = menuData.filter(item => {
     const matchCategory = activeCategory === "All" || item.category === activeCategory;
     const matchSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                        item.description.toLowerCase().includes(searchQuery.toLowerCase());
+                        (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchCategory && matchSearch;
   });
 
@@ -130,7 +155,7 @@ function renderMenu() {
       <div class="card-details">
         <div>
           <h3 class="product-title">${item.title}</h3>
-          <p class="product-desc">${item.description}</p>
+          <p class="product-desc">${item.description || ''}</p>
         </div>
         <div class="card-footer">
           <span class="price-tag">₹${item.price}</span>
@@ -212,6 +237,7 @@ function updateCartTotals() {
 // Render Cart Modal List
 function renderCartModal() {
   const container = document.getElementById("cart-items-container");
+  if (!container) return;
   container.innerHTML = "";
 
   if (cart.length === 0) {
@@ -290,31 +316,33 @@ function submitOrder(e) {
     subtotal: subtotal,
     packagingFee: packagingFee,
     totalAmount: totalAmount,
-    status: "Received" // Statuses: Received -> Preparing -> Ready -> Completed / Cancelled
+    status: "Received"
   };
 
-  db.ref("orders/" + orderId).set(newOrder, (error) => {
-    if (error) {
-      alert("Order placement failed: " + error.message);
-    } else {
-      // Clear Cart
-      cart = [];
-      saveCartAndSync();
-      closeCheckoutModal();
-      closeCartModal();
+  // Local Storage Orders Backup
+  let savedOrders = [];
+  try { savedOrders = JSON.parse(localStorage.getItem("ccc_orders")) || []; } catch(e){}
+  savedOrders.push(newOrder);
+  localStorage.setItem("ccc_orders", JSON.stringify(savedOrders));
 
-      // Save Order ID for live tracking
-      localStorage.setItem("ccc_active_order_id", orderId);
-      openTrackingModal();
-      startLiveOrderTracking(orderId);
-    }
-  });
+  // Firebase Try
+  try { db.ref("orders/" + orderId).set(newOrder); } catch(e){}
+
+  // Clear Cart
+  cart = [];
+  saveCartAndSync();
+  closeCheckoutModal();
+  closeCartModal();
+
+  localStorage.setItem("ccc_active_order_id", orderId);
+  openTrackingModal();
+  startLiveOrderTracking(orderId);
 }
 
 // Live Order Tracking Listener
 function startLiveOrderTracking(orderId) {
   if (trackingListener) {
-    db.ref("orders/" + trackingListener).off();
+    try { db.ref("orders/" + trackingListener).off(); } catch(e){}
   }
   trackingListener = orderId;
 
@@ -322,14 +350,22 @@ function startLiveOrderTracking(orderId) {
   document.getElementById("active-tracker-content").style.display = "block";
   document.getElementById("track-order-id").innerText = `#${orderId}`;
 
+  // Initial check from local
+  try {
+    const savedOrders = JSON.parse(localStorage.getItem("ccc_orders")) || [];
+    const localOrder = savedOrders.find(o => o.orderId === orderId);
+    if (localOrder) {
+      document.getElementById("track-dining-type").innerText = `${localOrder.diningType} ${localOrder.tableNo !== 'N/A' ? '(Table #' + localOrder.tableNo + ')' : ''}`;
+      updateStepperUI(localOrder.status);
+    }
+  } catch(e){}
+
+  // Firebase Live Sync
   db.ref("orders/" + orderId).on("value", (snapshot) => {
     if (!snapshot.exists()) return;
     const data = snapshot.val();
-    
     document.getElementById("track-dining-type").innerText = `${data.diningType} ${data.tableNo !== 'N/A' ? '(Table #' + data.tableNo + ')' : ''}`;
-
-    const status = data.status;
-    updateStepperUI(status);
+    updateStepperUI(data.status);
   });
 }
 
@@ -337,7 +373,7 @@ function updateStepperUI(status) {
   const steps = ["step-received", "step-preparing", "step-ready", "step-completed"];
   steps.forEach(s => {
     const el = document.getElementById(s);
-    el.classList.remove("active", "completed");
+    if (el) el.classList.remove("active", "completed");
   });
 
   if (status === "Received") {
@@ -366,27 +402,42 @@ function checkActiveOrderTracking() {
 
 // Event Listeners setup
 function setupEventListeners() {
-  document.getElementById("search-input").addEventListener("input", (e) => {
-    searchQuery = e.target.value;
-    renderMenu();
-  });
+  const sInput = document.getElementById("search-input");
+  if (sInput) {
+    sInput.addEventListener("input", (e) => {
+      searchQuery = e.target.value;
+      renderMenu();
+    });
+  }
 
-  document.getElementById("open-cart-btn").addEventListener("click", () => {
-    renderCartModal();
-    document.getElementById("cart-modal").classList.add("active");
-  });
+  const openCartBtn = document.getElementById("open-cart-btn");
+  if (openCartBtn) {
+    openCartBtn.addEventListener("click", () => {
+      renderCartModal();
+      document.getElementById("cart-modal").classList.add("active");
+    });
+  }
 
-  document.getElementById("proceed-checkout-btn").addEventListener("click", () => {
-    if (cart.length === 0) return;
-    document.getElementById("cart-modal").classList.remove("active");
-    document.getElementById("checkout-modal").classList.add("active");
-  });
+  const proceedBtn = document.getElementById("proceed-checkout-btn");
+  if (proceedBtn) {
+    proceedBtn.addEventListener("click", () => {
+      if (cart.length === 0) return;
+      document.getElementById("cart-modal").classList.remove("active");
+      document.getElementById("checkout-modal").classList.add("active");
+    });
+  }
 
-  document.getElementById("checkout-form").addEventListener("submit", submitOrder);
+  const chkForm = document.getElementById("checkout-form");
+  if (chkForm) {
+    chkForm.addEventListener("submit", submitOrder);
+  }
 
-  document.getElementById("top-track-btn").addEventListener("click", () => {
-    openTrackingModal();
-  });
+  const topTrackBtn = document.getElementById("top-track-btn");
+  if (topTrackBtn) {
+    topTrackBtn.addEventListener("click", () => {
+      openTrackingModal();
+    });
+  }
 }
 
 function closeCartModal() {
@@ -404,3 +455,4 @@ function openTrackingModal() {
 function closeTrackingModal() {
   document.getElementById("tracking-modal").classList.remove("active");
 }
+
