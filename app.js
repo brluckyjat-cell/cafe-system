@@ -9,10 +9,42 @@ let selectedDiningType = "Dine-In";
 let packagingFee = 10;
 let trackingListener = null;
 
+const CURRENT_MENU_VER = "v2_the_cafe";
+
 document.addEventListener("DOMContentLoaded", () => {
+  forceUpdateMenuIfNewVersion();
   initCustomerApp();
   setupEventListeners();
 });
+
+// Force update menu data when new menu version is deployed
+function forceUpdateMenuIfNewVersion() {
+  if (localStorage.getItem("ccc_menu_version") !== CURRENT_MENU_VER) {
+    localStorage.removeItem("ccc_products");
+    localStorage.removeItem("ccc_categories");
+    localStorage.setItem("ccc_menu_version", CURRENT_MENU_VER);
+
+    if (typeof DEFAULT_MENU_ITEMS !== 'undefined') {
+      menuData = DEFAULT_MENU_ITEMS;
+      localStorage.setItem("ccc_products", JSON.stringify(menuData));
+      
+      try {
+        const seedObj = {};
+        DEFAULT_MENU_ITEMS.forEach(item => { seedObj[item.id] = item; });
+        db.ref("products").set(seedObj);
+      } catch(e){}
+    }
+
+    if (typeof DEFAULT_CATEGORIES !== 'undefined') {
+      categoriesData = DEFAULT_CATEGORIES;
+      localStorage.setItem("ccc_categories", JSON.stringify(categoriesData));
+      
+      try {
+        db.ref("categories").set(DEFAULT_CATEGORIES);
+      } catch(e){}
+    }
+  }
+}
 
 function initCustomerApp() {
   loadCartFromStorage();
@@ -37,8 +69,8 @@ function listenToSettings() {
 }
 
 function applySettingsUI(data) {
-  document.getElementById("cafe-name").innerText = data.cafeName || "Chai Ceremony Cafe";
-  document.getElementById("cafe-tagline").innerText = data.tagline || "Sip • Relax • Connect";
+  document.getElementById("cafe-name").innerText = data.cafeName || "THE CAFE";
+  document.getElementById("cafe-tagline").innerText = data.tagline || "Fresh Brews & Delicious Bites";
   document.getElementById("cafe-logo").src = data.logoUrl || "https://cdn-icons-png.flaticon.com/512/924/924514.png";
   document.getElementById("footer-address").innerText = data.address || "";
   document.getElementById("footer-phone").innerText = "Contact: " + (data.contactPhone || "");
@@ -98,7 +130,7 @@ function renderCategories() {
   if (!container) return;
   container.innerHTML = "";
   
-  const cats = categoriesData.length > 0 ? categoriesData : DEFAULT_CATEGORIES;
+  const cats = (Array.isArray(categoriesData) && categoriesData.length > 0) ? categoriesData : DEFAULT_CATEGORIES;
 
   cats.forEach(cat => {
     const btn = document.createElement("button");
@@ -319,16 +351,13 @@ function submitOrder(e) {
     status: "Received"
   };
 
-  // Local Storage Orders Backup
   let savedOrders = [];
   try { savedOrders = JSON.parse(localStorage.getItem("ccc_orders")) || []; } catch(e){}
   savedOrders.push(newOrder);
   localStorage.setItem("ccc_orders", JSON.stringify(savedOrders));
 
-  // Firebase Try
   try { db.ref("orders/" + orderId).set(newOrder); } catch(e){}
 
-  // Clear Cart
   cart = [];
   saveCartAndSync();
   closeCheckoutModal();
@@ -350,7 +379,6 @@ function startLiveOrderTracking(orderId) {
   document.getElementById("active-tracker-content").style.display = "block";
   document.getElementById("track-order-id").innerText = `#${orderId}`;
 
-  // Initial check from local
   try {
     const savedOrders = JSON.parse(localStorage.getItem("ccc_orders")) || [];
     const localOrder = savedOrders.find(o => o.orderId === orderId);
@@ -360,7 +388,6 @@ function startLiveOrderTracking(orderId) {
     }
   } catch(e){}
 
-  // Firebase Live Sync
   db.ref("orders/" + orderId).on("value", (snapshot) => {
     if (!snapshot.exists()) return;
     const data = snapshot.val();
@@ -400,7 +427,6 @@ function checkActiveOrderTracking() {
   }
 }
 
-// Event Listeners setup
 function setupEventListeners() {
   const sInput = document.getElementById("search-input");
   if (sInput) {
@@ -455,4 +481,3 @@ function openTrackingModal() {
 function closeTrackingModal() {
   document.getElementById("tracking-modal").classList.remove("active");
 }
-
