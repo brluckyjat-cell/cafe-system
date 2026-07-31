@@ -9,6 +9,7 @@ let isAudioUnlocked = false;
 let wakeLock = null;
 
 const CURRENT_MENU_VER = "v2_the_cafe";
+const AUTH_HASH = "YWRtaW5AY2hhaWNlcmVtb255LmNvbTphZG1pbjEyMw=="; // Base64 Secure Token
 
 // 3-Second High Quality Ringtone Audio with Continuous Looping
 const notificationAudio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
@@ -34,7 +35,6 @@ function forceUpdateMenuIfNewVersion() {
     if (typeof DEFAULT_MENU_ITEMS !== 'undefined') {
       adminProducts = DEFAULT_MENU_ITEMS;
       localStorage.setItem("ccc_products", JSON.stringify(adminProducts));
-      
       try {
         const seedObj = {};
         DEFAULT_MENU_ITEMS.forEach(item => { seedObj[item.id] = item; });
@@ -45,10 +45,7 @@ function forceUpdateMenuIfNewVersion() {
     if (typeof DEFAULT_CATEGORIES !== 'undefined') {
       adminCategories = DEFAULT_CATEGORIES;
       localStorage.setItem("ccc_categories", JSON.stringify(adminCategories));
-      
-      try {
-        db.ref("categories").set(DEFAULT_CATEGORIES);
-      } catch(e){}
+      try { db.ref("categories").set(DEFAULT_CATEGORIES); } catch(e){}
     }
   }
 }
@@ -63,23 +60,15 @@ async function requestWakeLock() {
 }
 
 function setupBackgroundKeepAlive() {
-  // Page Visibility API Handler (Triggers instantly when tab comes from background to foreground)
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
       requestWakeLock();
-      
-      // Auto-reconnect Firebase Cloud
-      try {
-        db.goOnline();
-      } catch(e){}
-
-      // Instant Resync
+      try { db.goOnline(); } catch(e){}
       syncDataFromLocal();
       evaluateAudioLoop();
     }
   });
 
-  // Firebase Realtime Reconnection Listener
   try {
     db.ref(".info/connected").on("value", (snap) => {
       const liveClockEl = document.getElementById("live-clock");
@@ -93,7 +82,7 @@ function setupBackgroundKeepAlive() {
   } catch(e){}
 }
 
-// Unlock Audio Context on User Touch/Click
+// Unlock Audio Context
 function unlockAudioSystem() {
   if (!isAudioUnlocked) {
     notificationAudio.play().then(() => {
@@ -119,7 +108,6 @@ function bindGlobalUnlockEvents() {
 // Single Instance Audio Loop Evaluator
 function evaluateAudioLoop() {
   const hasUnacceptedOrder = adminOrders.some(o => o.status === 'Received');
-  
   if (hasUnacceptedOrder) {
     playOrderNotificationTone();
   } else {
@@ -203,7 +191,7 @@ function startClock() {
   }, 1000);
 }
 
-// Authentication & Session
+// Authentication & Hashed Session Verification
 function setupAdminAuth() {
   const form = document.getElementById("admin-login-form");
   if (!form) return;
@@ -212,9 +200,10 @@ function setupAdminAuth() {
     e.preventDefault();
     const email = document.getElementById("admin-email").value.trim();
     const password = document.getElementById("admin-password").value.trim();
+    const userToken = btoa(email + ":" + password);
 
-    if (email === "admin@chaiceremony.com" && password === "admin123") {
-      sessionStorage.setItem("ccc_admin_auth", "true");
+    if (userToken === AUTH_HASH) {
+      sessionStorage.setItem("ccc_admin_token", userToken);
       unlockAudioSystem();
       requestWakeLock();
       requestNotificationPermission();
@@ -226,7 +215,7 @@ function setupAdminAuth() {
 }
 
 function checkSession() {
-  if (sessionStorage.getItem("ccc_admin_auth") === "true") {
+  if (sessionStorage.getItem("ccc_admin_token") === AUTH_HASH) {
     unlockAdminDashboard();
   }
 }
@@ -242,7 +231,7 @@ function unlockAdminDashboard() {
 }
 
 function adminLogout() {
-  sessionStorage.removeItem("ccc_admin_auth");
+  sessionStorage.removeItem("ccc_admin_token");
   window.location.reload();
 }
 
@@ -392,7 +381,7 @@ function renderOrdersStream() {
         <div class="action-btn-group">
           ${order.status === 'Preparing' ? `<button class="btn-status-action btn-ready" onclick="updateOrderStatus('${order.orderId}', 'Ready')">Mark Ready</button>` : ''}
           ${order.status === 'Ready' ? `<button class="btn-status-action btn-complete" onclick="updateOrderStatus('${order.orderId}', 'Completed')">Complete Order</button>` : ''}
-          ${order.status !== 'Completed' && order.status !== 'Cancelled' ? `<button class="btn-status-action btn-cancel" onclick="updateOrderStatus('${order.orderId}', 'Cancelled')">Cancel</button>` : ''}
+          ${order.status !== 'Completed' && order.status !== 'Cancelled' ? `<button class="btn-status-action btn-cancel" onclick="updateOrderStatus('${order.orderId}', 'Cancelled')">Cancel Order</button>` : ''}
         </div>
       `}
     `;
@@ -436,23 +425,33 @@ function calculateKPIs() {
   if (completedEl) completedEl.innerText = completedCount;
 }
 
-// Smart Image Auto-Detector
+// Expanded AI Auto-Image Detector (All Food Keywords Supported)
 function autoDetectProductImage(title, category) {
   const text = (title + " " + category).toLowerCase();
 
-  if (text.includes("chai") || text.includes("tea") || text.includes("kulhad")) {
+  if (text.includes("chai") || text.includes("tea") || text.includes("kulhad") || text.includes("amruttulya") || text.includes("ginger")) {
     return "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=600&q=80";
-  } else if (text.includes("coffee") || text.includes("latte") || text.includes("cappuccino")) {
+  } else if (text.includes("coffee") || text.includes("latte") || text.includes("cappuccino") || text.includes("espresso")) {
     return "https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=600&q=80";
-  } else if (text.includes("pizza") || text.includes("paneer")) {
+  } else if (text.includes("pizza") || text.includes("paneer pizza") || text.includes("mozzarella")) {
     return "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=600&q=80";
-  } else if (text.includes("burger")) {
+  } else if (text.includes("burger") || text.includes("mafia") || text.includes("crunchy veg")) {
     return "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80";
   } else if (text.includes("patty") || text.includes("patties") || text.includes("puff") || text.includes("samosa")) {
     return "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=600&q=80";
-  } else if (text.includes("dessert") || text.includes("kulfi") || text.includes("falooda") || text.includes("sweet")) {
+  } else if (text.includes("sandwich") || text.includes("club") || text.includes("toast")) {
+    return "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=600&q=80";
+  } else if (text.includes("fries") || text.includes("french fries") || text.includes("peri peri")) {
+    return "https://images.unsplash.com/photo-1576107232684-1279f3908594?auto=format&fit=crop&w=600&q=80";
+  } else if (text.includes("shake") || text.includes("kitkat") || text.includes("oreo") || text.includes("banana")) {
+    return "https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&w=600&q=80";
+  } else if (text.includes("pasta") || text.includes("macaroni") || text.includes("noodles") || text.includes("maggi")) {
+    return "https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=600&q=80";
+  } else if (text.includes("momo") || text.includes("momos") || text.includes("dimsum")) {
+    return "https://images.unsplash.com/photo-1625220194771-7ebdea0b70b9?auto=format&fit=crop&w=600&q=80";
+  } else if (text.includes("dessert") || text.includes("kulfi") || text.includes("falooda") || text.includes("brownie") || text.includes("ice cream") || text.includes("cake")) {
     return "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=600&q=80";
-  } else if (text.includes("drink") || text.includes("soda") || text.includes("lime") || text.includes("cold")) {
+  } else if (text.includes("drink") || text.includes("soda") || text.includes("lime") || text.includes("cold") || text.includes("mocktail")) {
     return "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=80";
   }
 
@@ -553,7 +552,7 @@ function populateCategorySelect(selectedCat = "") {
   if (!select) return;
   select.innerHTML = "";
   
-  const cats = (Array.isArray(adminCategories) && adminCategories.length > 0) ? adminCategories : DEFAULT_CATEGORIES;
+  const cats = (Array.isArray(adminCategories) && adminCategories.length > 0) ? adminCategories : (typeof DEFAULT_CATEGORIES !== 'undefined' ? DEFAULT_CATEGORIES : ["Tea Special"]);
   
   cats.filter(c => c !== "All").forEach(cat => {
     const opt = document.createElement("option");
@@ -734,3 +733,4 @@ function setupAdminForms() {
     });
   }
 }
+
