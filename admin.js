@@ -4,7 +4,8 @@ let adminOrders = [];
 let adminProducts = [];
 let adminCategories = [];
 let knownOrderIds = new Set();
-let isAudioInitialized = false;
+let isInitialLoadComplete = false;
+let audioCtx = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   setupAdminAuth();
@@ -12,17 +13,103 @@ document.addEventListener("DOMContentLoaded", () => {
   startClock();
   setupAdminForms();
   setupRealtimeAutoSync();
+  setupAudioUnlocker();
 });
 
-// Real-time Storage Listener for instant multi-tab sync without page refresh
+// Unlock Browser Audio Policy on User Gesture
+function setupAudioUnlocker() {
+  const unlockAudio = () => {
+    if (!audioCtx) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (AudioContext) audioCtx = new AudioContext();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+  };
+
+  document.addEventListener('click', unlockAudio, { once: true });
+  document.addEventListener('touchstart', unlockAudio, { once: true });
+}
+
+// 3-Second Royal Notification Tone Generator
+function playOrderNotificationTone() {
+  try {
+    if (!audioCtx) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (AudioContext) audioCtx = new AudioContext();
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+
+    const now = audioCtx.currentTime;
+
+    // Chime Note 1
+    const osc1 = audioCtx.createOscillator();
+    const gain1 = audioCtx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(659.25, now);
+    gain1.gain.setValueAtTime(0.5, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 1.0);
+    osc1.connect(gain1);
+    gain1.connect(audioCtx.destination);
+    osc1.start(now);
+    osc1.stop(now + 1.0);
+
+    // Chime Note 2
+    const osc2 = audioCtx.createOscillator();
+    const gain2 = audioCtx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(830.61, now + 0.4);
+    gain2.gain.setValueAtTime(0.6, now + 0.4);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 2.0);
+    osc2.connect(gain2);
+    gain2.connect(audioCtx.destination);
+    osc2.start(now + 0.4);
+    osc2.stop(now + 2.0);
+
+    // Chime Note 3 (Holds sound till 3 Seconds)
+    const osc3 = audioCtx.createOscillator();
+    const gain3 = audioCtx.createGain();
+    osc3.type = 'sine';
+    osc3.frequency.setValueAtTime(987.77, now + 0.8);
+    gain3.gain.setValueAtTime(0.7, now + 0.8);
+    gain3.gain.exponentialRampToValueAtTime(0.001, now + 3.0);
+    osc3.connect(gain3);
+    gain3.connect(audioCtx.destination);
+    osc3.start(now + 0.8);
+    osc3.stop(now + 3.0);
+  } catch(e) {
+    console.log("Audio unlock required", e);
+  }
+}
+
+// Request Browser Notification Permission
+function requestNotificationPermission() {
+  if ("Notification" in window && Notification.permission !== "granted") {
+    Notification.requestPermission();
+  }
+}
+
+// Trigger Mobile System Banner Notification
+function sendPushNotification(orderId, customerName) {
+  if ("Notification" in window && Notification.permission === "granted") {
+    new Notification("🔔 New Order Received!", {
+      body: `Order #${orderId} from ${customerName}`,
+      icon: "https://cdn-icons-png.flaticon.com/512/924/924514.png"
+    });
+  }
+}
+
+// Real-time Storage Sync
 function setupRealtimeAutoSync() {
   window.addEventListener('storage', (e) => {
-    if (e.key === 'ccc_orders' || e.key === 'ccc_products' || e.key === 'ccc_categories') {
+    if (e.key === 'ccc_orders') {
       syncDataFromLocal();
     }
   });
 
-  // Polling fallback every 2 seconds
   setInterval(() => {
     syncDataFromLocal();
   }, 2000);
@@ -32,14 +119,14 @@ function syncDataFromLocal() {
   try {
     const savedOrders = JSON.parse(localStorage.getItem("ccc_orders")) || [];
     
-    // Check for NEW incoming order to play 3-sec sound
-    if (knownOrderIds.size > 0) {
-      const hasNewOrder = savedOrders.some(o => !knownOrderIds.has(o.orderId));
-      if (hasNewOrder) {
+    if (isInitialLoadComplete && savedOrders.length > 0) {
+      const newOrders = savedOrders.filter(o => !knownOrderIds.has(o.orderId));
+      if (newOrders.length > 0) {
         playOrderNotificationTone();
+        sendPushNotification(newOrders[0].orderId, newOrders[0].customerName);
       }
     }
-    
+
     savedOrders.forEach(o => knownOrderIds.add(o.orderId));
     adminOrders = savedOrders;
     renderOrdersStream();
@@ -48,53 +135,7 @@ function syncDataFromLocal() {
   } catch(e){}
 }
 
-// 3-Second Royal Notification Tone Generator (Web Audio Synthesizer)
-function playOrderNotificationTone() {
-  try {
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContext) return;
-    const ctx = new AudioContext();
-    const now = ctx.currentTime;
-
-    // Chime Note 1
-    const osc1 = ctx.createOscillator();
-    const gain1 = ctx.createGain();
-    osc1.type = 'sine';
-    osc1.frequency.setValueAtTime(659.25, now);
-    gain1.gain.setValueAtTime(0.3, now);
-    gain1.gain.exponentialRampToValueAtTime(0.001, now + 1.0);
-    osc1.connect(gain1);
-    gain1.connect(ctx.destination);
-    osc1.start(now);
-    osc1.stop(now + 1.0);
-
-    // Chime Note 2
-    const osc2 = ctx.createOscillator();
-    const gain2 = ctx.createGain();
-    osc2.type = 'sine';
-    osc2.frequency.setValueAtTime(830.61, now + 0.4);
-    gain2.gain.setValueAtTime(0.4, now + 0.4);
-    gain2.gain.exponentialRampToValueAtTime(0.001, now + 2.0);
-    osc2.connect(gain2);
-    gain2.connect(ctx.destination);
-    osc2.start(now + 0.4);
-    osc2.stop(now + 2.0);
-
-    // Chime Note 3 (Holds sound till 3 Seconds)
-    const osc3 = ctx.createOscillator();
-    const gain3 = ctx.createGain();
-    osc3.type = 'sine';
-    osc3.frequency.setValueAtTime(987.77, now + 0.8);
-    gain3.gain.setValueAtTime(0.5, now + 0.8);
-    gain3.gain.exponentialRampToValueAtTime(0.001, now + 3.0);
-    osc3.connect(gain3);
-    gain3.connect(ctx.destination);
-    osc3.start(now + 0.8);
-    osc3.stop(now + 3.0);
-  } catch(e) {}
-}
-
-// Smart Image Auto-Detector based on Item Title & Category
+// Smart Image Auto-Detector
 function autoDetectProductImage(title, category) {
   const text = (title + " " + category).toLowerCase();
 
@@ -108,12 +149,10 @@ function autoDetectProductImage(title, category) {
     return "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80";
   } else if (text.includes("patty") || text.includes("patties") || text.includes("puff") || text.includes("samosa")) {
     return "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=600&q=80";
-  } else if (text.includes("dessert") || text.includes("kulfi") || text.includes("falooda") || text.includes("sweet") || text.includes("ice cream")) {
+  } else if (text.includes("dessert") || text.includes("kulfi") || text.includes("falooda") || text.includes("sweet")) {
     return "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=600&q=80";
-  } else if (text.includes("drink") || text.includes("soda") || text.includes("lime") || text.includes("shake") || text.includes("beverage") || text.includes("cold")) {
+  } else if (text.includes("drink") || text.includes("soda") || text.includes("lime") || text.includes("cold")) {
     return "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=80";
-  } else if (text.includes("cigarette") || text.includes("smoke")) {
-    return "https://images.unsplash.com/photo-1527061011665-3652c757a4d4?auto=format&fit=crop&w=600&q=80";
   }
 
   return "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=600&q=80";
@@ -142,6 +181,7 @@ function setupAdminAuth() {
 
     if (email === "admin@chaiceremony.com" && password === "admin123") {
       sessionStorage.setItem("ccc_admin_auth", "true");
+      requestNotificationPermission();
       unlockAdminDashboard();
     } else {
       alert("Invalid Admin Credentials!");
@@ -182,7 +222,7 @@ function switchAdminTab(tabName, btnElement) {
   if (targetSection) targetSection.classList.add("active");
 }
 
-// Init Realtime Sync
+// Init Realtime Firebase Sync
 function initAdminDashboard() {
   listenToLiveOrders();
   listenToAdminProducts();
@@ -198,19 +238,25 @@ function listenToLiveOrders() {
     if (snapshot.exists()) {
       const data = snapshot.val();
       const updatedOrders = Object.keys(data).map(key => ({ ...data[key] }));
-      
-      // Check for new order for sound
-      if (knownOrderIds.size > 0) {
-        const hasNew = updatedOrders.some(o => !knownOrderIds.has(o.orderId));
-        if (hasNew) playOrderNotificationTone();
+
+      if (isInitialLoadComplete) {
+        const newOrders = updatedOrders.filter(o => !knownOrderIds.has(o.orderId));
+        if (newOrders.length > 0) {
+          playOrderNotificationTone();
+          sendPushNotification(newOrders[0].orderId, newOrders[0].customerName);
+        }
       }
-      
+
       updatedOrders.forEach(o => knownOrderIds.add(o.orderId));
       adminOrders = updatedOrders;
+      isInitialLoadComplete = true;
+
       localStorage.setItem("ccc_orders", JSON.stringify(adminOrders));
       renderOrdersStream();
       calculateKPIs();
       calculateAnalytics();
+    } else {
+      isInitialLoadComplete = true;
     }
   });
 }
@@ -314,10 +360,6 @@ function listenToAdminProducts() {
       adminProducts = JSON.parse(localProds);
       renderAdminProductsTable();
     } catch(e){}
-  } else {
-    adminProducts = DEFAULT_MENU_ITEMS;
-    localStorage.setItem("ccc_products", JSON.stringify(adminProducts));
-    renderAdminProductsTable();
   }
 
   db.ref("products").on("value", (snapshot) => {
@@ -427,10 +469,6 @@ function listenToAdminCategories() {
       adminCategories = JSON.parse(localCats);
       renderAdminCategoriesTable();
     } catch(e){}
-  } else {
-    adminCategories = DEFAULT_CATEGORIES;
-    localStorage.setItem("ccc_categories", JSON.stringify(adminCategories));
-    renderAdminCategoriesTable();
   }
 
   db.ref("categories").on("value", (snapshot) => {
@@ -580,7 +618,6 @@ function setupAdminForms() {
         return;
       }
 
-      // Auto Assign Image using Smart Auto-Detector
       const autoImage = autoDetectProductImage(titleVal, catVal);
 
       const newProd = {
@@ -594,7 +631,6 @@ function setupAdminForms() {
         inStock: inStockVal
       };
 
-      // Guaranteed Local Storage Save
       const existingIdx = adminProducts.findIndex(p => p.id === id);
       if (existingIdx !== -1) {
         adminProducts[existingIdx] = newProd;
@@ -606,7 +642,6 @@ function setupAdminForms() {
       closeProductModal();
       alert("Product saved successfully!");
 
-      // Firebase Try
       try { db.ref("products/" + id).set(newProd); } catch(err){}
     });
   }
@@ -646,4 +681,3 @@ function setupAdminForms() {
     });
   }
 }
-
