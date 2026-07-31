@@ -1,4 +1,3 @@
-
 // Admin Dashboard Logic (admin.js) - Royal Rajasthani Theme
 
 let adminOrders = [];
@@ -8,8 +7,9 @@ let knownOrderIds = new Set();
 let pageLoadTime = Date.now();
 let isAudioUnlocked = false;
 
-// 3-Second High Quality Ringtone Audio
+// 3-Second High Quality Ringtone Audio with Continuous Looping
 const notificationAudio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
+notificationAudio.loop = true; // Continuous loop until accepted
 
 document.addEventListener("DOMContentLoaded", () => {
   setupAdminAuth();
@@ -19,13 +19,14 @@ document.addEventListener("DOMContentLoaded", () => {
   bindGlobalUnlockEvents();
 });
 
-// Audio Unlock
+// Unlock Audio Context on User Gesture (Mobile Browser Requirement)
 function unlockAudioSystem() {
   if (!isAudioUnlocked) {
     notificationAudio.play().then(() => {
       notificationAudio.pause();
       notificationAudio.currentTime = 0;
       isAudioUnlocked = true;
+      evaluateAudioLoop();
     }).catch(e => {});
   }
 }
@@ -40,19 +41,33 @@ function bindGlobalUnlockEvents() {
   document.addEventListener('touchstart', unlocker);
 }
 
-// Play Loud Ringtone
+// Single Instance Audio Loop Evaluator (Prevents Multiple Overlapping Tones)
+function evaluateAudioLoop() {
+  const hasUnacceptedOrder = adminOrders.some(o => o.status === 'Received');
+  
+  if (hasUnacceptedOrder) {
+    playOrderNotificationTone();
+  } else {
+    stopOrderNotificationTone();
+  }
+}
+
+// Play Single Continuous Looping Tone
 function playOrderNotificationTone() {
   try {
-    notificationAudio.currentTime = 0;
-    const playPromise = notificationAudio.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(() => playSynthesizerChime());
+    if (notificationAudio.paused) {
+      notificationAudio.currentTime = 0;
+      const playPromise = notificationAudio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => playSynthesizerChime());
+      }
     }
   } catch(e) {
     playSynthesizerChime();
   }
 }
 
+// Stop Notification Tone
 function stopOrderNotificationTone() {
   try {
     notificationAudio.pause();
@@ -183,6 +198,7 @@ function listenToLiveOrders() {
     renderOrdersStream();
     calculateKPIs();
     calculateAnalytics();
+    evaluateAudioLoop();
   } catch(e){}
 
   const ordersRef = db.ref("orders");
@@ -207,7 +223,7 @@ function listenToLiveOrders() {
       calculateAnalytics();
 
       if (order.timestamp && order.timestamp > (pageLoadTime - 10000)) {
-        playOrderNotificationTone();
+        evaluateAudioLoop();
         sendPushNotification(order.orderId, order.customerName || "Customer");
       }
     }
@@ -224,6 +240,7 @@ function listenToLiveOrders() {
       renderOrdersStream();
       calculateKPIs();
       calculateAnalytics();
+      evaluateAudioLoop();
     }
   });
 }
@@ -231,7 +248,6 @@ function listenToLiveOrders() {
 // iPhone Slide to Accept Handler
 function handleSlideAccept(sliderInput, orderId) {
   if (sliderInput.value >= 85) {
-    stopOrderNotificationTone();
     updateOrderStatus(orderId, 'Preparing');
   }
 }
@@ -313,6 +329,7 @@ function updateOrderStatus(orderId, newStatus) {
     renderOrdersStream();
     calculateKPIs();
     calculateAnalytics();
+    evaluateAudioLoop(); // Re-evaluates sound loop state after accepting
   }
   try { db.ref("orders/" + orderId).update({ status: newStatus }); } catch(e){}
 }
@@ -638,3 +655,4 @@ function setupAdminForms() {
     });
   }
 }
+
