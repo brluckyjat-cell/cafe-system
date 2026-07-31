@@ -1,4 +1,4 @@
-// Customer Portal Logic (app.js)
+// Customer Portal Logic (app.js) - Chai Ceremony Cafe
 
 let menuData = [];
 let categoriesData = [];
@@ -27,7 +27,6 @@ function forceUpdateMenuIfNewVersion() {
     if (typeof DEFAULT_MENU_ITEMS !== 'undefined') {
       menuData = DEFAULT_MENU_ITEMS;
       localStorage.setItem("ccc_products", JSON.stringify(menuData));
-      
       try {
         const seedObj = {};
         DEFAULT_MENU_ITEMS.forEach(item => { seedObj[item.id] = item; });
@@ -38,10 +37,7 @@ function forceUpdateMenuIfNewVersion() {
     if (typeof DEFAULT_CATEGORIES !== 'undefined') {
       categoriesData = DEFAULT_CATEGORIES;
       localStorage.setItem("ccc_categories", JSON.stringify(categoriesData));
-      
-      try {
-        db.ref("categories").set(DEFAULT_CATEGORIES);
-      } catch(e){}
+      try { db.ref("categories").set(DEFAULT_CATEGORIES); } catch(e){}
     }
   }
 }
@@ -56,70 +52,61 @@ function initCustomerApp() {
 
 // 1. Settings Listener
 function listenToSettings() {
-  const localSet = localStorage.getItem("ccc_settings");
-  if (localSet) {
-    try { applySettingsUI(JSON.parse(localSet)); } catch(e){}
-  }
-
   db.ref("settings").on("value", (snapshot) => {
-    const data = snapshot.val() || DEFAULT_SETTINGS;
+    const data = snapshot.val() || (typeof DEFAULT_SETTINGS !== 'undefined' ? DEFAULT_SETTINGS : {});
     localStorage.setItem("ccc_settings", JSON.stringify(data));
     applySettingsUI(data);
   });
 }
 
 function applySettingsUI(data) {
-  document.getElementById("cafe-name").innerText = data.cafeName || "THE CAFE";
-  document.getElementById("cafe-tagline").innerText = data.tagline || "Fresh Brews & Delicious Bites";
-  document.getElementById("cafe-logo").src = data.logoUrl || "https://cdn-icons-png.flaticon.com/512/924/924514.png";
-  document.getElementById("footer-address").innerText = data.address || "";
-  document.getElementById("footer-phone").innerText = "Contact: " + (data.contactPhone || "");
+  const nameEl = document.getElementById("cafe-name");
+  const tagEl = document.getElementById("cafe-tagline");
+  const logoEl = document.getElementById("cafe-logo");
+  const addrEl = document.getElementById("footer-address");
+  const phoneEl = document.getElementById("footer-phone");
+
+  if (nameEl) nameEl.innerText = data.cafeName || "THE CAFE";
+  if (tagEl) tagEl.innerText = data.tagline || "Fresh Brews & Delicious Bites";
+  if (logoEl) logoEl.src = data.logoUrl || "https://cdn-icons-png.flaticon.com/512/924/924514.png";
+  if (addrEl) addrEl.innerText = data.address || "";
+  if (phoneEl) phoneEl.innerText = "Contact: " + (data.contactPhone || "");
+  
   packagingFee = Number(data.packagingCharge) || 10;
-  document.getElementById("packaging-val").innerText = `₹${packagingFee}`;
+  const packVal = document.getElementById("packaging-val");
+  if (packVal) packVal.innerText = `₹${packagingFee}`;
   updateCartTotals();
 }
 
 // 2. Categories Listener
 function listenToCategories() {
-  const localCats = localStorage.getItem("ccc_categories");
-  if (localCats) {
-    try {
-      categoriesData = JSON.parse(localCats);
-      renderCategories();
-    } catch(e){}
-  }
-
   db.ref("categories").on("value", (snapshot) => {
     if (snapshot.exists()) {
       categoriesData = snapshot.val();
-    } else if (!localCats) {
-      categoriesData = DEFAULT_CATEGORIES;
+      localStorage.setItem("ccc_categories", JSON.stringify(categoriesData));
+      renderCategories();
+    } else {
+      const localCats = localStorage.getItem("ccc_categories");
+      if (localCats) {
+        try { categoriesData = JSON.parse(localCats); renderCategories(); } catch(e){}
+      }
     }
-    localStorage.setItem("ccc_categories", JSON.stringify(categoriesData));
-    renderCategories();
   });
 }
 
 // 3. Products Listener
 function listenToProducts() {
-  const localProds = localStorage.getItem("ccc_products");
-  if (localProds) {
-    try {
-      menuData = JSON.parse(localProds);
-      renderMenu();
-    } catch(e){}
-  }
-
   db.ref("products").on("value", (snapshot) => {
     if (snapshot.exists()) {
       const data = snapshot.val();
       menuData = Object.keys(data).map(key => ({ id: key, ...data[key] }));
       localStorage.setItem("ccc_products", JSON.stringify(menuData));
       renderMenu();
-    } else if (!localProds) {
-      menuData = DEFAULT_MENU_ITEMS;
-      localStorage.setItem("ccc_products", JSON.stringify(menuData));
-      renderMenu();
+    } else {
+      const localProds = localStorage.getItem("ccc_products");
+      if (localProds) {
+        try { menuData = JSON.parse(localProds); renderMenu(); } catch(e){}
+      }
     }
   });
 }
@@ -130,7 +117,7 @@ function renderCategories() {
   if (!container) return;
   container.innerHTML = "";
   
-  const cats = (Array.isArray(categoriesData) && categoriesData.length > 0) ? categoriesData : DEFAULT_CATEGORIES;
+  const cats = (Array.isArray(categoriesData) && categoriesData.length > 0) ? categoriesData : (typeof DEFAULT_CATEGORIES !== 'undefined' ? DEFAULT_CATEGORIES : ["All"]);
 
   cats.forEach(cat => {
     const btn = document.createElement("button");
@@ -138,7 +125,8 @@ function renderCategories() {
     btn.innerText = cat;
     btn.onclick = () => {
       activeCategory = cat;
-      document.getElementById("current-category-title").innerText = cat === "All" ? "Royal Menu" : cat;
+      const titleEl = document.getElementById("current-category-title");
+      if (titleEl) titleEl.innerText = cat === "All" ? "Royal Menu" : cat;
       renderCategories();
       renderMenu();
     };
@@ -176,7 +164,7 @@ function renderMenu() {
     card.className = "product-card";
     card.innerHTML = `
       <div class="card-img-wrap">
-        <img src="${item.image}" alt="${item.title}" class="product-img" loading="lazy">
+        <img src="${item.image}" alt="${item.title}" class="product-img" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=600&q=80'">
         <div class="veg-badge ${item.isVeg ? 'veg' : 'non-veg'}">
           <div class="dot"></div>
         </div>
@@ -251,18 +239,25 @@ function updateCartTotals() {
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
   const grandTotal = totalItems > 0 ? subtotal + packagingFee : 0;
 
-  document.getElementById("cart-count").innerText = totalItems;
-  document.getElementById("cart-items-text").innerText = `${totalItems} Item${totalItems > 1 ? 's' : ''}`;
-  document.getElementById("cart-total-price").innerText = `₹${grandTotal}`;
+  const countEl = document.getElementById("cart-count");
+  const itemsTextEl = document.getElementById("cart-items-text");
+  const totalPriceEl = document.getElementById("cart-total-price");
+  const subtotalValEl = document.getElementById("subtotal-val");
+  const grandTotalValEl = document.getElementById("grand-total-val");
 
-  document.getElementById("subtotal-val").innerText = `₹${subtotal}`;
-  document.getElementById("grand-total-val").innerText = `₹${grandTotal}`;
+  if (countEl) countEl.innerText = totalItems;
+  if (itemsTextEl) itemsTextEl.innerText = `${totalItems} Item${totalItems > 1 ? 's' : ''}`;
+  if (totalPriceEl) totalPriceEl.innerText = `₹${grandTotal}`;
+  if (subtotalValEl) subtotalValEl.innerText = `₹${subtotal}`;
+  if (grandTotalValEl) grandTotalValEl.innerText = `₹${grandTotal}`;
 
   const floatingBar = document.getElementById("floating-cart");
-  if (totalItems > 0) {
-    floatingBar.classList.remove("hidden");
-  } else {
-    floatingBar.classList.add("hidden");
+  if (floatingBar) {
+    if (totalItems > 0) {
+      floatingBar.classList.remove("hidden");
+    } else {
+      floatingBar.classList.add("hidden");
+    }
   }
 }
 
@@ -307,15 +302,15 @@ function selectDining(type) {
   const tableInput = document.getElementById("cust-table");
 
   if (type === "Dine-In") {
-    dineInTile.classList.add("selected");
-    takeawayTile.classList.remove("selected");
-    tableGroup.style.display = "block";
-    tableInput.required = true;
+    if (dineInTile) dineInTile.classList.add("selected");
+    if (takeawayTile) takeawayTile.classList.remove("selected");
+    if (tableGroup) tableGroup.style.display = "block";
+    if (tableInput) tableInput.required = true;
   } else {
-    takeawayTile.classList.add("selected");
-    dineInTile.classList.remove("selected");
-    tableGroup.style.display = "none";
-    tableInput.required = false;
+    if (takeawayTile) takeawayTile.classList.add("selected");
+    if (dineInTile) dineInTile.classList.remove("selected");
+    if (tableGroup) tableGroup.style.display = "none";
+    if (tableInput) tableInput.required = false;
   }
 }
 
@@ -368,22 +363,27 @@ function submitOrder(e) {
   startLiveOrderTracking(orderId);
 }
 
-// Live Order Tracking Listener
+// Live Order Tracking Listener (Includes Cancelled Status Alert Fix)
 function startLiveOrderTracking(orderId) {
   if (trackingListener) {
     try { db.ref("orders/" + trackingListener).off(); } catch(e){}
   }
   trackingListener = orderId;
 
-  document.getElementById("no-order-tracker-msg").style.display = "none";
-  document.getElementById("active-tracker-content").style.display = "block";
-  document.getElementById("track-order-id").innerText = `#${orderId}`;
+  const msgEl = document.getElementById("no-order-tracker-msg");
+  const contentEl = document.getElementById("active-tracker-content");
+  const trackIdEl = document.getElementById("track-order-id");
+
+  if (msgEl) msgEl.style.display = "none";
+  if (contentEl) contentEl.style.display = "block";
+  if (trackIdEl) trackIdEl.innerText = `#${orderId}`;
 
   try {
     const savedOrders = JSON.parse(localStorage.getItem("ccc_orders")) || [];
     const localOrder = savedOrders.find(o => o.orderId === orderId);
     if (localOrder) {
-      document.getElementById("track-dining-type").innerText = `${localOrder.diningType} ${localOrder.tableNo !== 'N/A' ? '(Table #' + localOrder.tableNo + ')' : ''}`;
+      const trackDiningEl = document.getElementById("track-dining-type");
+      if (trackDiningEl) trackDiningEl.innerText = `${localOrder.diningType} ${localOrder.tableNo !== 'N/A' ? '(Table #' + localOrder.tableNo + ')' : ''}`;
       updateStepperUI(localOrder.status);
     }
   } catch(e){}
@@ -391,13 +391,36 @@ function startLiveOrderTracking(orderId) {
   db.ref("orders/" + orderId).on("value", (snapshot) => {
     if (!snapshot.exists()) return;
     const data = snapshot.val();
-    document.getElementById("track-dining-type").innerText = `${data.diningType} ${data.tableNo !== 'N/A' ? '(Table #' + data.tableNo + ')' : ''}`;
+    const trackDiningEl = document.getElementById("track-dining-type");
+    if (trackDiningEl) trackDiningEl.innerText = `${data.diningType} ${data.tableNo !== 'N/A' ? '(Table #' + data.tableNo + ')' : ''}`;
     updateStepperUI(data.status);
   });
 }
 
 function updateStepperUI(status) {
   const steps = ["step-received", "step-preparing", "step-ready", "step-completed"];
+  
+  // Remove existing Cancelled Banner if any
+  let cancelBanner = document.getElementById("track-cancelled-banner");
+  if (cancelBanner) cancelBanner.remove();
+
+  if (status === "Cancelled") {
+    steps.forEach(s => {
+      const el = document.getElementById(s);
+      if (el) el.classList.remove("active", "completed");
+    });
+
+    const activeContent = document.getElementById("active-tracker-content");
+    if (activeContent) {
+      const banner = document.createElement("div");
+      banner.id = "track-cancelled-banner";
+      banner.style.cssText = "background:#EF4444; color:white; padding:12px; border-radius:10px; text-align:center; font-weight:700; margin-bottom:16px;";
+      banner.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Order Cancelled by Cafe`;
+      activeContent.insertBefore(banner, activeContent.children[1]);
+    }
+    return;
+  }
+
   steps.forEach(s => {
     const el = document.getElementById(s);
     if (el) el.classList.remove("active", "completed");
@@ -467,17 +490,21 @@ function setupEventListeners() {
 }
 
 function closeCartModal() {
-  document.getElementById("cart-modal").classList.remove("active");
+  const modal = document.getElementById("cart-modal");
+  if (modal) modal.classList.remove("active");
 }
 
 function closeCheckoutModal() {
-  document.getElementById("checkout-modal").classList.remove("active");
+  const modal = document.getElementById("checkout-modal");
+  if (modal) modal.classList.remove("active");
 }
 
 function openTrackingModal() {
-  document.getElementById("tracking-modal").classList.add("active");
+  const modal = document.getElementById("tracking-modal");
+  if (modal) modal.classList.add("active");
 }
 
 function closeTrackingModal() {
-  document.getElementById("tracking-modal").classList.remove("active");
+  const modal = document.getElementById("tracking-modal");
+  if (modal) modal.classList.remove("active");
 }
