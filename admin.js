@@ -14,14 +14,20 @@ document.addEventListener("DOMContentLoaded", () => {
 // Clock
 function startClock() {
   setInterval(() => {
-    const now = new Date();
-    document.getElementById("live-clock").innerText = now.toLocaleTimeString() + " | Live Sync";
+    const el = document.getElementById("live-clock");
+    if (el) {
+      const now = new Date();
+      el.innerText = now.toLocaleTimeString() + " | Live Sync";
+    }
   }, 1000);
 }
 
 // Authentication & Session
 function setupAdminAuth() {
-  document.getElementById("admin-login-form").addEventListener("submit", (e) => {
+  const form = document.getElementById("admin-login-form");
+  if (!form) return;
+
+  form.addEventListener("submit", (e) => {
     e.preventDefault();
     const email = document.getElementById("admin-email").value.trim();
     const password = document.getElementById("admin-password").value.trim();
@@ -42,8 +48,12 @@ function checkSession() {
 }
 
 function unlockAdminDashboard() {
-  document.getElementById("admin-login-modal").classList.remove("active");
-  document.getElementById("admin-dashboard-container").style.display = "block";
+  const loginScreen = document.getElementById("admin-login-screen");
+  const dashContainer = document.getElementById("admin-dashboard-container");
+
+  if (loginScreen) loginScreen.style.display = "none";
+  if (dashContainer) dashContainer.style.display = "block";
+
   initAdminDashboard();
 }
 
@@ -52,7 +62,7 @@ function adminLogout() {
   window.location.reload();
 }
 
-// Tab Switching (Explicit Element Parameter Fix)
+// Tab Switching
 function switchAdminTab(tabName, btnElement) {
   document.querySelectorAll(".admin-tab-btn").forEach(btn => btn.classList.remove("active"));
   document.querySelectorAll(".admin-section").forEach(sec => sec.classList.remove("active"));
@@ -60,7 +70,8 @@ function switchAdminTab(tabName, btnElement) {
   if (btnElement) {
     btnElement.classList.add("active");
   }
-  document.getElementById(`tab-${tabName}`).classList.add("active");
+  const targetSection = document.getElementById(`tab-${tabName}`);
+  if (targetSection) targetSection.classList.add("active");
 }
 
 // Init Realtime Sync
@@ -88,6 +99,7 @@ function listenToLiveOrders() {
 
 function renderOrdersStream() {
   const container = document.getElementById("orders-stream-container");
+  if (!container) return;
   container.innerHTML = "";
 
   const sorted = [...adminOrders].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
@@ -157,10 +169,15 @@ function calculateKPIs() {
   const pendingCount = adminOrders.filter(o => ["Received", "Preparing", "Ready"].includes(o.status)).length;
   const completedCount = todayOrders.filter(o => o.status === "Completed").length;
 
-  document.getElementById("kpi-sales").innerText = `₹${totalSalesToday}`;
-  document.getElementById("kpi-orders-count").innerText = todayOrders.length;
-  document.getElementById("kpi-pending").innerText = pendingCount;
-  document.getElementById("kpi-completed").innerText = completedCount;
+  const salesEl = document.getElementById("kpi-sales");
+  const countEl = document.getElementById("kpi-orders-count");
+  const pendingEl = document.getElementById("kpi-pending");
+  const completedEl = document.getElementById("kpi-completed");
+
+  if (salesEl) salesEl.innerText = `₹${totalSalesToday}`;
+  if (countEl) countEl.innerText = todayOrders.length;
+  if (pendingEl) pendingEl.innerText = pendingCount;
+  if (completedEl) completedEl.innerText = completedCount;
 }
 
 // 2. Admin Products CRUD
@@ -175,6 +192,7 @@ function listenToAdminProducts() {
 
 function renderAdminProductsTable() {
   const tbody = document.getElementById("products-table-body");
+  if (!tbody) return;
   tbody.innerHTML = "";
 
   adminProducts.forEach(prod => {
@@ -235,6 +253,7 @@ function editProduct(productId) {
 
 function populateCategorySelect(selectedCat = "") {
   const select = document.getElementById("prod-category");
+  if (!select) return;
   select.innerHTML = "";
   adminCategories.filter(c => c !== "All").forEach(cat => {
     const opt = document.createElement("option");
@@ -260,6 +279,7 @@ function listenToAdminCategories() {
 
 function renderAdminCategoriesTable() {
   const tbody = document.getElementById("categories-table-body");
+  if (!tbody) return;
   tbody.innerHTML = "";
 
   adminCategories.forEach((cat) => {
@@ -282,7 +302,7 @@ function deleteCategoryByName(catName) {
   }
 }
 
-// 4. Analytics Calculations (Safeguarded against null data)
+// 4. Analytics Calculations
 function calculateAnalytics() {
   const now = Date.now();
   const dayMs = 86400000;
@@ -301,7 +321,6 @@ function calculateAnalytics() {
     .filter(o => (now - (o.timestamp || 0)) <= (30 * dayMs))
     .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
 
-  // Best Selling Item Calculation
   const itemCounts = {};
   validOrders.forEach(o => {
     if (Array.isArray(o.items)) {
@@ -322,10 +341,15 @@ function calculateAnalytics() {
     }
   });
 
-  document.getElementById("report-daily-sales").innerText = `₹${dailySales}`;
-  document.getElementById("report-weekly-sales").innerText = `₹${weeklySales}`;
-  document.getElementById("report-monthly-sales").innerText = `₹${monthlySales}`;
-  document.getElementById("report-top-item").innerText = topItem;
+  const dailyEl = document.getElementById("report-daily-sales");
+  const weeklyEl = document.getElementById("report-weekly-sales");
+  const monthlyEl = document.getElementById("report-monthly-sales");
+  const topEl = document.getElementById("report-top-item");
+
+  if (dailyEl) dailyEl.innerText = `₹${dailySales}`;
+  if (weeklyEl) weeklyEl.innerText = `₹${weeklySales}`;
+  if (monthlyEl) monthlyEl.innerText = `₹${monthlySales}`;
+  if (topEl) topEl.innerText = topItem;
 }
 
 // 5. Settings CRUD
@@ -333,72 +357,86 @@ function listenToAdminSettings() {
   db.ref("settings").on("value", (snapshot) => {
     if (!snapshot.exists()) return;
     const data = snapshot.val();
-    document.getElementById("set-cafe-name").value = data.cafeName || "";
-    document.getElementById("set-tagline").value = data.tagline || "";
-    document.getElementById("set-logo-url").value = data.logoUrl || "";
-    document.getElementById("set-address").value = data.address || "";
-    document.getElementById("set-phone").value = data.contactPhone || "";
-    document.getElementById("set-packaging").value = data.packagingCharge || 0;
+    const nameEl = document.getElementById("set-cafe-name");
+    const tagEl = document.getElementById("set-tagline");
+    const logoEl = document.getElementById("set-logo-url");
+    const addrEl = document.getElementById("set-address");
+    const phoneEl = document.getElementById("set-phone");
+    const packEl = document.getElementById("set-packaging");
+
+    if (nameEl) nameEl.value = data.cafeName || "";
+    if (tagEl) tagEl.value = data.tagline || "";
+    if (logoEl) logoEl.value = data.logoUrl || "";
+    if (addrEl) addrEl.value = data.address || "";
+    if (phoneEl) phoneEl.value = data.contactPhone || "";
+    if (packEl) packEl.value = data.packagingCharge || 0;
   });
 }
 
 // Setup Form Listeners
 function setupAdminForms() {
-  // Save Product Form (Preserves existing inStock state)
-  document.getElementById("product-form").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const id = document.getElementById("prod-id").value || ("prod_" + Date.now());
-    const existingProd = adminProducts.find(p => p.id === id);
-    const inStockVal = existingProd ? existingProd.inStock : true;
+  const prodForm = document.getElementById("product-form");
+  if (prodForm) {
+    prodForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const id = document.getElementById("prod-id").value || ("prod_" + Date.now());
+      const existingProd = adminProducts.find(p => p.id === id);
+      const inStockVal = existingProd ? existingProd.inStock : true;
 
-    const newProd = {
-      id: id,
-      title: document.getElementById("prod-title").value.trim(),
-      category: document.getElementById("prod-category").value,
-      price: Number(document.getElementById("prod-price").value),
-      image: document.getElementById("prod-image").value.trim(),
-      description: document.getElementById("prod-desc").value.trim(),
-      isVeg: document.getElementById("prod-veg").value === "true",
-      inStock: inStockVal
-    };
+      const newProd = {
+        id: id,
+        title: document.getElementById("prod-title").value.trim(),
+        category: document.getElementById("prod-category").value,
+        price: Number(document.getElementById("prod-price").value),
+        image: document.getElementById("prod-image").value.trim(),
+        description: document.getElementById("prod-desc").value.trim(),
+        isVeg: document.getElementById("prod-veg").value === "true",
+        inStock: inStockVal
+      };
 
-    db.ref("products/" + id).set(newProd, (err) => {
-      if (!err) {
-        closeProductModal();
-      } else {
-        alert("Error saving product: " + err.message);
+      db.ref("products/" + id).set(newProd, (err) => {
+        if (!err) {
+          closeProductModal();
+        } else {
+          alert("Error saving product: " + err.message);
+        }
+      });
+    });
+  }
+
+  const catForm = document.getElementById("add-category-form");
+  if (catForm) {
+    catForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const catInput = document.getElementById("new-cat-input");
+      const val = catInput.value.trim();
+      if (val && !adminCategories.includes(val)) {
+        const updated = [...adminCategories, val];
+        db.ref("categories").set(updated, () => {
+          catInput.value = "";
+        });
       }
     });
-  });
+  }
 
-  // Add Category Form
-  document.getElementById("add-category-form").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const catInput = document.getElementById("new-cat-input");
-    const val = catInput.value.trim();
-    if (val && !adminCategories.includes(val)) {
-      const updated = [...adminCategories, val];
-      db.ref("categories").set(updated, () => {
-        catInput.value = "";
+  const setForm = document.getElementById("settings-form");
+  if (setForm) {
+    setForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const updated = {
+        cafeName: document.getElementById("set-cafe-name").value.trim(),
+        tagline: document.getElementById("set-tagline").value.trim(),
+        logoUrl: document.getElementById("set-logo-url").value.trim(),
+        address: document.getElementById("set-address").value.trim(),
+        contactPhone: document.getElementById("set-phone").value.trim(),
+        packagingCharge: Number(document.getElementById("set-packaging").value)
+      };
+
+      db.ref("settings").set(updated, (err) => {
+        if (!err) alert("Cafe Settings updated successfully!");
       });
-    }
-  });
-
-  // Save Settings Form
-  document.getElementById("settings-form").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const updated = {
-      cafeName: document.getElementById("set-cafe-name").value.trim(),
-      tagline: document.getElementById("set-tagline").value.trim(),
-      logoUrl: document.getElementById("set-logo-url").value.trim(),
-      address: document.getElementById("set-address").value.trim(),
-      contactPhone: document.getElementById("set-phone").value.trim(),
-      packagingCharge: Number(document.getElementById("set-packaging").value)
-    };
-
-    db.ref("settings").set(updated, (err) => {
-      if (!err) alert("Cafe Settings updated successfully!");
     });
-  });
+  }
 }
+
 
