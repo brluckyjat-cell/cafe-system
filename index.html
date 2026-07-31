@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Chai Ceremony Cafe | Royal QR Menu</title>
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- APP HEADER -->
+  <header class="app-header">
+    <div class="brand-container">
+      <div class="logo-wrap">
+        <img id="cafe-logo" src="https://cdn-icons-png.flaticon.com/512/924/924514.png" alt="Cafe Logo" class="logo-img">
+        <div>
+          <h1 id="cafe-name" class="brand-title">Chai Ceremony Cafe</h1>
+          <p id="cafe-tagline" class="brand-tagline">Sip • Relax • Connect</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div id="hours-badge" class="badge-status">
+          <span class="dot"></span>
+          <span id="hours-text">Open Now</span>
+        </div>
+        <button id="top-track-btn" class="track-btn-top">
+          <i class="fa-solid fa-location-dot"></i> Track
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- SEARCH & CATEGORIES -->
+  <section class="search-filter-section">
+    <div class="search-box">
+      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+      <input type="text" id="search-input" class="search-input" placeholder="Search Chai, Pizza, Burger...">
+    </div>
+    <div class="category-pills-wrap" id="category-pills">
+      <!-- Dynamic Category Pills Rendered Here -->
+    </div>
+  </section>
+
+  <!-- MENU CONTAINER -->
+  <main class="menu-container">
+    <div class="section-title">
+      <i class="fa-solid fa-utensils" style="color: var(--primary-terracotta);"></i>
+      <span id="current-category-title">Royal Menu</span>
+    </div>
+    <div class="menu-grid" id="menu-grid">
+      <!-- Dynamic Product Cards Rendered Here -->
+    </div>
+  </main>
+
+  <!-- FLOATING STICKY CART BAR -->
+  <div class="floating-cart-bar hidden" id="floating-cart">
+    <div class="cart-bar-info">
+      <div class="cart-icon-wrap">
+        <i class="fa-solid fa-bag-shopping"></i>
+        <span class="cart-count-badge" id="cart-count">0</span>
+      </div>
+      <div class="cart-bar-details">
+        <div class="item-count-text" id="cart-items-text">0 Items</div>
+        <div class="total-price-text" id="cart-total-price">₹0</div>
+      </div>
+    </div>
+    <button class="view-cart-btn" id="open-cart-btn">
+      View Cart <i class="fa-solid fa-arrow-right"></i>
+    </button>
+  </div>
+
+  <!-- CART MODAL -->
+  <div class="modal-overlay" id="cart-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i class="fa-solid fa-cart-shopping"></i> Your Royal Selection
+        </div>
+        <button class="close-modal-btn" class="close-cart-btn" onclick="closeCartModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="cart-items-list" id="cart-items-container">
+          <!-- Dynamic Cart Items -->
+        </div>
+
+        <div class="bill-summary-card">
+          <div class="bill-row">
+            <span>Item Subtotal</span>
+            <span id="subtotal-val">₹0</span>
+          </div>
+          <div class="bill-row">
+            <span>Packaging Charges</span>
+            <span id="packaging-val">₹10</span>
+          </div>
+          <div class="bill-row total">
+            <span>Grand Total</span>
+            <span id="grand-total-val">₹0</span>
+          </div>
+        </div>
+        
+        <button class="btn-primary" style="margin-top: 16px;" id="proceed-checkout-btn">
+          Proceed to Checkout <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHECKOUT MODAL -->
+  <div class="modal-overlay" id="checkout-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i class="fa-solid fa-receipt"></i> Place Order
+        </div>
+        <button class="close-modal-btn" onclick="closeCheckoutModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="checkout-form">
+          <div class="form-group">
+            <label class="form-label">Dining Preference</label>
+            <div class="radio-toggle-group">
+              <div class="radio-tile selected" id="opt-dinein" onclick="selectDining('Dine-In')">
+                <i class="fa-solid fa-chair"></i> Dine-In
+              </div>
+              <div class="radio-tile" id="opt-takeaway" onclick="selectDining('Takeaway')">
+                <i class="fa-solid fa-box-open"></i> Takeaway
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group" id="table-no-group">
+            <label class="form-label">Table Number *</label>
+            <input type="number" id="cust-table" class="form-control" placeholder="e.g. 5" min="1" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Your Name *</label>
+            <input type="text" id="cust-name" class="form-control" placeholder="Enter full name" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Mobile Number (10 digits) *</label>
+            <input type="tel" id="cust-phone" class="form-control" placeholder="9876543210" pattern="[0-9]{10}" maxlength="10" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Special Customization / Notes</label>
+            <input type="text" id="cust-notes" class="form-control" placeholder="Less sugar, extra spicy, etc.">
+          </div>
+
+          <button type="submit" class="btn-primary" id="place-order-submit-btn">
+            Confirm & Submit Order
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIVE TRACKING MODAL -->
+  <div class="modal-overlay" id="tracking-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i class="fa-solid fa-bell"></i> Live Order Tracker
+        </div>
+        <button class="close-modal-btn" onclick="closeTrackingModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="no-order-tracker-msg" style="text-align: center; padding: 20px; color: var(--text-muted);">
+          No active order found. Place an order to track in real-time!
+        </div>
+
+        <div id="active-tracker-content" style="display: none;">
+          <div class="order-id-banner">
+            Order ID: <strong id="track-order-id">#CCC-0000</strong>
+            <br>
+            <span id="track-dining-type" style="font-size:0.75rem; color:var(--royal-gold);"></span>
+          </div>
+
+          <div class="stepper-wrapper">
+            <div class="step-item" id="step-received">
+              <div class="step-icon"><i class="fa-solid fa-check"></i></div>
+              <div class="step-content">
+                <div class="step-title">Order Received 📝</div>
+                <div class="step-subtitle">Sent to cafe counter</div>
+              </div>
+            </div>
+
+            <div class="step-item" id="step-preparing">
+              <div class="step-icon"><i class="fa-solid fa-fire-burner"></i></div>
+              <div class="step-content">
+                <div class="step-title">Preparing 👨‍🍳</div>
+                <div class="step-subtitle">Chef is crafting your items</div>
+              </div>
+            </div>
+
+            <div class="step-item" id="step-ready">
+              <div class="step-icon"><i class="fa-solid fa-bell"></i></div>
+              <div class="step-content">
+                <div class="step-title">Ready 🔔</div>
+                <div class="step-subtitle">Ready for serving / pickup</div>
+              </div>
+            </div>
+
+            <div class="step-item" id="step-completed">
+              <div class="step-icon"><i class="fa-solid fa-champagne-glasses"></i></div>
+              <div class="step-content">
+                <div class="step-title">Completed ✅</div>
+                <div class="step-subtitle">Enjoy your meal!</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer-about">
+    <h3 class="royal-font">Chai Ceremony Cafe</h3>
+    <p id="footer-address">Near Hawa Mahal Road, Jaipur, Rajasthan</p>
+    <p id="footer-phone" style="margin-top:4px;">Contact: +91 98765 43210</p>
+    <p style="margin-top: 14px; font-size:0.7rem; color:#8C7A6B;">&copy; 2026 Chai Ceremony Cafe. Royal Heritage Hospitality.</p>
+  </footer>
+
+  <!-- Firebase Compat Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+  <!-- Application Logic -->
+  <script src="firebase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
