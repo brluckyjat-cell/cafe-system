@@ -1,3 +1,4 @@
+
 // Admin Dashboard Logic (admin.js) - Royal Rajasthani Theme
 
 let adminOrders = [];
@@ -7,7 +8,7 @@ let knownOrderIds = new Set();
 let pageLoadTime = Date.now();
 let isAudioUnlocked = false;
 
-// 3-Second High Quality Chime Audio File
+// 3-Second High Quality Ringtone Audio
 const notificationAudio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -18,16 +19,14 @@ document.addEventListener("DOMContentLoaded", () => {
   bindGlobalUnlockEvents();
 });
 
-// Unlock Audio Context on User Gesture (Mobile Browser Requirement)
+// Audio Unlock
 function unlockAudioSystem() {
   if (!isAudioUnlocked) {
     notificationAudio.play().then(() => {
       notificationAudio.pause();
       notificationAudio.currentTime = 0;
       isAudioUnlocked = true;
-    }).catch(e => {
-      console.log("Audio unlock waiting for user click:", e);
-    });
+    }).catch(e => {});
   }
 }
 
@@ -41,23 +40,27 @@ function bindGlobalUnlockEvents() {
   document.addEventListener('touchstart', unlocker);
 }
 
-// Play Loud 3-Second Ringtone
+// Play Loud Ringtone
 function playOrderNotificationTone() {
   try {
     notificationAudio.currentTime = 0;
     const playPromise = notificationAudio.play();
     if (playPromise !== undefined) {
-      playPromise.catch(() => {
-        // Fallback Web Audio Synthesizer if network blocks MP3
-        playSynthesizerChime();
-      });
+      playPromise.catch(() => playSynthesizerChime());
     }
   } catch(e) {
     playSynthesizerChime();
   }
 }
 
-// Web Audio Fallback Synthesizer
+function stopOrderNotificationTone() {
+  try {
+    notificationAudio.pause();
+    notificationAudio.currentTime = 0;
+  } catch(e){}
+}
+
+// Synthesizer Chime Fallback
 function playSynthesizerChime() {
   try {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -68,9 +71,9 @@ function playSynthesizerChime() {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = 'triangle';
-    osc.frequency.setValueAtTime(587.33, now); // D5
-    osc.frequency.setValueAtTime(880, now + 0.3); // A5
-    osc.frequency.setValueAtTime(1174.66, now + 0.7); // D6
+    osc.frequency.setValueAtTime(587.33, now);
+    osc.frequency.setValueAtTime(880, now + 0.3);
+    osc.frequency.setValueAtTime(1174.66, now + 0.7);
 
     gain.gain.setValueAtTime(0.8, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 3.0);
@@ -169,12 +172,10 @@ function initAdminDashboard() {
   listenToLiveOrders();
   listenToAdminProducts();
   listenToAdminCategories();
-  listenToAdminSettings();
 }
 
-// 1. Live Orders Listener (Instant Realtime Event Engine)
+// 1. Live Orders Listener
 function listenToLiveOrders() {
-  // Initial load from Local Backup
   try {
     const savedOrders = JSON.parse(localStorage.getItem("ccc_orders")) || [];
     adminOrders = savedOrders;
@@ -184,10 +185,8 @@ function listenToLiveOrders() {
     calculateAnalytics();
   } catch(e){}
 
-  // Direct Firebase Realtime Stream
   const ordersRef = db.ref("orders");
 
-  // Listen for NEW incoming orders
   ordersRef.on("child_added", (snapshot) => {
     const order = snapshot.val();
     if (!order || !order.orderId) return;
@@ -207,7 +206,6 @@ function listenToLiveOrders() {
       calculateKPIs();
       calculateAnalytics();
 
-      // Trigger Alert Sound & Notification if order created after page load
       if (order.timestamp && order.timestamp > (pageLoadTime - 10000)) {
         playOrderNotificationTone();
         sendPushNotification(order.orderId, order.customerName || "Customer");
@@ -215,7 +213,6 @@ function listenToLiveOrders() {
     }
   });
 
-  // Listen for Order Status Updates (Preparing, Ready, Completed)
   ordersRef.on("child_changed", (snapshot) => {
     const updatedOrder = snapshot.val();
     if (!updatedOrder || !updatedOrder.orderId) return;
@@ -229,6 +226,14 @@ function listenToLiveOrders() {
       calculateAnalytics();
     }
   });
+}
+
+// iPhone Slide to Accept Handler
+function handleSlideAccept(sliderInput, orderId) {
+  if (sliderInput.value >= 85) {
+    stopOrderNotificationTone();
+    updateOrderStatus(orderId, 'Preparing');
+  }
 }
 
 function renderOrdersStream() {
@@ -252,8 +257,12 @@ function renderOrdersStream() {
       </div>
     `).join("");
 
+    const isNewIncoming = (order.status === 'Received');
+
     const card = document.createElement("div");
     card.className = "admin-order-card";
+    card.style.border = isNewIncoming ? "2px solid #22C55E" : "1px solid var(--border-gold)";
+
     card.innerHTML = `
       <div class="admin-order-header">
         <div>
@@ -276,12 +285,21 @@ function renderOrdersStream() {
         </div>
       </div>
 
-      <div class="action-btn-group">
-        ${order.status === 'Received' ? `<button class="btn-status-action btn-prep" onclick="updateOrderStatus('${order.orderId}', 'Preparing')">Start Preparing</button>` : ''}
-        ${order.status === 'Preparing' ? `<button class="btn-status-action btn-ready" onclick="updateOrderStatus('${order.orderId}', 'Ready')">Mark Ready</button>` : ''}
-        ${order.status === 'Ready' ? `<button class="btn-status-action btn-complete" onclick="updateOrderStatus('${order.orderId}', 'Completed')">Complete</button>` : ''}
-        ${order.status !== 'Completed' && order.status !== 'Cancelled' ? `<button class="btn-status-action btn-cancel" onclick="updateOrderStatus('${order.orderId}', 'Cancelled')">Cancel</button>` : ''}
-      </div>
+      ${isNewIncoming ? `
+        <!-- iPhone Call Pickup Slide-to-Accept -->
+        <div class="ios-slider-box">
+          <span class="ios-slider-text">Slide to Accept Order ➔</span>
+          <input type="range" min="0" max="100" value="0" class="ios-range-input" oninput="handleSlideAccept(this, '${order.orderId}')">
+        </div>
+        <button class="btn-status-action btn-cancel" style="margin-top:6px; width:100%;" onclick="updateOrderStatus('${order.orderId}', 'Cancelled')">Cancel Order</button>
+      ` : `
+        <!-- Standard Order Action Stream -->
+        <div class="action-btn-group">
+          ${order.status === 'Preparing' ? `<button class="btn-status-action btn-ready" onclick="updateOrderStatus('${order.orderId}', 'Ready')">Mark Ready</button>` : ''}
+          ${order.status === 'Ready' ? `<button class="btn-status-action btn-complete" onclick="updateOrderStatus('${order.orderId}', 'Completed')">Complete Order</button>` : ''}
+          ${order.status !== 'Completed' && order.status !== 'Cancelled' ? `<button class="btn-status-action btn-cancel" onclick="updateOrderStatus('${order.orderId}', 'Cancelled')">Cancel</button>` : ''}
+        </div>
+      `}
     `;
     container.appendChild(card);
   });
@@ -552,41 +570,6 @@ function calculateAnalytics() {
   if (topEl) topEl.innerText = topItem;
 }
 
-// 5. Settings CRUD
-function listenToAdminSettings() {
-  const localSet = localStorage.getItem("ccc_settings");
-  if (localSet) {
-    try {
-      const data = JSON.parse(localSet);
-      populateSettingsForm(data);
-    } catch(e){}
-  }
-
-  db.ref("settings").on("value", (snapshot) => {
-    if (snapshot.exists()) {
-      const data = snapshot.val();
-      localStorage.setItem("ccc_settings", JSON.stringify(data));
-      populateSettingsForm(data);
-    }
-  });
-}
-
-function populateSettingsForm(data) {
-  const nameEl = document.getElementById("set-cafe-name");
-  const tagEl = document.getElementById("set-tagline");
-  const logoEl = document.getElementById("set-logo-url");
-  const addrEl = document.getElementById("set-address");
-  const phoneEl = document.getElementById("set-phone");
-  const packEl = document.getElementById("set-packaging");
-
-  if (nameEl) nameEl.value = data.cafeName || "";
-  if (tagEl) tagEl.value = data.tagline || "";
-  if (logoEl) logoEl.value = data.logoUrl || "";
-  if (addrEl) addrEl.value = data.address || "";
-  if (phoneEl) phoneEl.value = data.contactPhone || "";
-  if (packEl) packEl.value = data.packagingCharge || 0;
-}
-
 // Setup Form Listeners
 function setupAdminForms() {
   const prodForm = document.getElementById("product-form");
@@ -652,25 +635,6 @@ function setupAdminForms() {
         catInput.value = "";
         try { db.ref("categories").set(adminCategories); } catch(e){}
       }
-    });
-  }
-
-  const setForm = document.getElementById("settings-form");
-  if (setForm) {
-    setForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const updated = {
-        cafeName: document.getElementById("set-cafe-name").value.trim(),
-        tagline: document.getElementById("set-tagline").value.trim(),
-        logoUrl: document.getElementById("set-logo-url").value.trim(),
-        address: document.getElementById("set-address").value.trim(),
-        contactPhone: document.getElementById("set-phone").value.trim(),
-        packagingCharge: Number(document.getElementById("set-packaging").value)
-      };
-
-      localStorage.setItem("ccc_settings", JSON.stringify(updated));
-      alert("Cafe Settings updated successfully!");
-      try { db.ref("settings").set(updated); } catch(e){}
     });
   }
 }
