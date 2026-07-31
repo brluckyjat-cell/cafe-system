@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Operations Portal | Chai Ceremony Cafe</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="responsive.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body style="background: #f8f3ea;">
+
+  <!-- Admin Navigation Top Bar -->
+  <nav class="navbar" style="border-bottom: 3px solid var(--gold); background: var(--coffee); color: var(--cream);">
+    <div class="logo-container">
+      <div class="logo-icon">☕</div>
+      <div class="brand-title logo-text" style="color: var(--gold);">CCC OWNER PORTAL</div>
+    </div>
+    <div style="display: flex; gap: 12px; align-items: center;">
+      <a href="index.html" target="_blank" class="btn-primary" style="padding: 8px 18px; font-size: 0.85rem; background: var(--terracotta);">🌐 Customer Site</a>
+      <button onclick="localStorage.removeItem('ccc_admin_authenticated'); window.location.href='login.html';" class="btn-primary" style="padding: 8px 18px; font-size: 0.85rem; background: #c62828; border: none;">Logout</button>
+    </div>
+  </nav>
+
+  <!-- Admin Main Layout -->
+  <div class="admin-layout" style="display: flex; max-width: 1400px; margin: 25px auto; padding: 0 20px; gap: 25px;">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="admin-sidebar rajasthani-card" style="width: 250px; flex-shrink: 0; padding: 20px; height: fit-content;">
+      <h3 style="font-size: 1.1rem; color: var(--coffee); margin-bottom: 18px; border-bottom: 2px solid var(--gold); padding-bottom: 8px;">Navigation</h3>
+      <ul style="list-style: none; display: flex; flex-direction: column; gap: 12px; font-weight: 600;">
+        <li><a href="#section-stats" style="color: var(--coffee); text-decoration: none;">📊 Sales Analytics</a></li>
+        <li><a href="#section-orders" style="color: var(--coffee); text-decoration: none;">📦 Live Orders</a></li>
+        <li><a href="#section-pos" style="color: var(--coffee); text-decoration: none;">📝 Offline POS Entry</a></li>
+        <li><a href="#section-inventory" style="color: var(--coffee); text-decoration: none;">🥦 Inventory Manager</a></li>
+        <li><a href="#section-expenses" style="color: var(--coffee); text-decoration: none;">💸 Expense Tracker</a></li>
+        <li><a href="#section-products" style="color: var(--coffee); text-decoration: none;">🍔 Menu Products</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main Dashboard Body -->
+    <main style="flex-grow: 1; display: flex; flex-direction: column; gap: 30px;">
+      
+      <!-- 1. DASHBOARD ANALYTICS STATS -->
+      <section id="section-stats">
+        <h2 style="color: var(--coffee); font-size: 1.5rem; margin-bottom: 15px;">Today's Overview</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
+          
+          <div class="rajasthani-card" style="padding: 18px;">
+            <small style="color: var(--text-muted); font-weight: 600;">Today's Total Sales</small>
+            <h2 id="dash-total-sales" style="font-size: 1.8rem; color: var(--terracotta); margin-top: 5px;">₹0</h2>
+          </div>
+
+          <div class="rajasthani-card" style="padding: 18px;">
+            <small style="color: var(--text-muted); font-weight: 600;">Total Orders</small>
+            <h2 id="dash-total-orders" style="font-size: 1.8rem; color: var(--coffee); margin-top: 5px;">0</h2>
+          </div>
+
+          <div class="rajasthani-card" style="padding: 18px;">
+            <small style="color: var(--text-muted); font-weight: 600;">Pending Kitchen Orders</small>
+            <h2 id="dash-pending-orders" style="font-size: 1.8rem; color: var(--gold); margin-top: 5px;">0</h2>
+          </div>
+
+          <div class="rajasthani-card" style="padding: 18px;">
+            <small style="color: var(--text-muted); font-weight: 600;">Today's Expenses</small>
+            <h2 id="dash-today-expense" style="font-size: 1.8rem; color: #c62828; margin-top: 5px;">₹0</h2>
+          </div>
+
+          <div class="rajasthani-card" style="padding: 18px;">
+            <small style="color: var(--text-muted); font-weight: 600;">Net Earnings</small>
+            <h2 id="dash-net-earnings" style="font-size: 1.8rem; color: #2e7d32; margin-top: 5px;">₹0</h2>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- 2. LIVE INCOMING ORDERS TABLE -->
+      <section id="section-orders" class="rajasthani-card" style="padding: 22px;">
+        <h2 style="color: var(--coffee); font-size: 1.3rem; margin-bottom: 15px;">Live Incoming Orders</h2>
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.92rem;">
+            <thead>
+              <tr style="background: var(--cream); border-bottom: 2px solid var(--gold); color: var(--coffee);">
+                <th style="padding: 10px;">Order ID</th>
+                <th style="padding: 10px;">Customer Details</th>
+                <th style="padding: 10px;">Ordered Items</th>
+                <th style="padding: 10px;">Total</th>
+                <th style="padding: 10px;">Payment</th>
+                <th style="padding: 10px;">Status</th>
+                <th style="padding: 10px;">Update Action</th>
+              </tr>
+            </thead>
+            <tbody id="admin-orders-tbody">
+              <!-- Populated in realtime via admin.js -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 3. OFFLINE COUNTER POS ORDER ENTRY -->
+      <section id="section-pos" class="rajasthani-card" style="padding: 22px;">
+        <h2 style="color: var(--coffee); font-size: 1.3rem; margin-bottom: 15px;">Offline Counter POS Entry</h2>
+        <form id="offline-pos-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px;">
+          <div class="form-group" style="margin: 0;">
+            <label>Customer Name</label>
+            <input type="text" id="off-name" class="form-control" placeholder="Walk-in Guest">
+          </div>
+          <div class="form-group" style="margin: 0;">
+            <label>Mobile Number</label>
+            <input type="tel" id="off-phone" class="form-control" placeholder="10-digit number">
+          </div>
+          <div class="form-group" style="margin: 0;">
+            <label>Table / Counter</label>
+            <input type="text" id="off-table" class="form-control" placeholder="e.g. Table 3 or Counter">
+          </div>
+          <div class="form-group" style="margin: 0;">
+            <label>Ordered Items</label>
+            <input type="text" id="off-items" class="form-control" required placeholder="e.g. 2x Kulhad Chai + 1x Patties">
+          </div>
+          <div class="form-group" style="margin: 0;">
+            <label>Total Price (₹)</label>
+            <input type="number" id="off-amount" class="form-control" required placeholder="100">
+          </div>
+          <div class="form-group" style="margin: 0;">
+            <label>Payment Method</label>
+            <select id="off-payment" class="form-control">
+              <option value="Cash">Cash</option>
+              <option value="UPI">UPI / QR Code</option>
+              <option value="Card">Card</option>
+            </select>
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1; margin: 0;">
+            <label>Order Notes</label>
+            <input type="text" id="off-notes" class="form-control" placeholder="Special instructions (e.g. Extra spicy, Less sugar)">
+          </div>
+          <div style="grid-column: 1 / -1; margin-top: 5px;">
+            <button type="submit" class="btn-primary" style="padding: 10px 24px;">Save Counter POS Order</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- 4. INVENTORY MANAGER -->
+      <section id="section-inventory" class="rajasthani-card" style="padding: 22px;">
+        <h2 style="color: var(--coffee); font-size: 1.3rem; margin-bottom: 15px;">Inventory Stock Manager</h2>
+        
+        <form id="inventory-form" style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px;">
+          <input type="text" id="inv-item-name" class="form-control" style="flex: 2; min-width: 180px;" required placeholder="Ingredient Name (e.g. Milk, Tea Powder, Cheese)">
+          <input type="number" id="inv-qty" class="form-control" style="flex: 1; min-width: 100px;" required placeholder="Stock Qty">
+          <select id="inv-unit" class="form-control" style="flex: 1; min-width: 100px;">
+            <option value="Liters">Liters</option>
+            <option value="Kg">Kg</option>
+            <option value="Packs">Packs</option>
+            <option value="Units">Units</option>
+          </select>
+          <button type="submit" class="btn-primary" style="padding: 10px 20px;">+ Add Stock Item</button>
+        </form>
+
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+            <thead>
+              <tr style="background: var(--cream); border-bottom: 2px solid var(--gold); text-align: left;">
+                <th style="padding: 8px;">Ingredient</th>
+                <th style="padding: 8px;">Current Stock</th>
+                <th style="padding: 8px;">Stock Status</th>
+                <th style="padding: 8px;">Adjust Qty</th>
+              </tr>
+            </thead>
+            <tbody id="inventory-tbody">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 5. EXPENSE MANAGER -->
+      <section id="section-expenses" class="rajasthani-card" style="padding: 22px;">
+        <h2 style="color: var(--coffee); font-size: 1.3rem; margin-bottom: 15px;">Daily Expense Manager</h2>
+        
+        <form id="expense-form" style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px;">
+          <input type="text" id="exp-title" class="form-control" style="flex: 2; min-width: 180px;" required placeholder="Expense Description (e.g. Milk Purchase, Electricity Bill)">
+          <select id="exp-category" class="form-control" style="flex: 1; min-width: 130px;">
+            <option value="Raw Material">Raw Material</option>
+            <option value="Utilities">Utilities</option>
+            <option value="Staff Salary">Staff Salary</option>
+            <option value="Other">Other</option>
+          </select>
+          <input type="number" id="exp-amount" class="form-control" style="flex: 1; min-width: 100px;" required placeholder="Amount (₹)">
+          <button type="submit" class="btn-primary" style="padding: 10px 20px; background: var(--brown);">Record Expense</button>
+        </form>
+
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+            <thead>
+              <tr style="background: var(--cream); border-bottom: 2px solid var(--gold); text-align: left;">
+                <th style="padding: 8px;">Description</th>
+                <th style="padding: 8px;">Category</th>
+                <th style="padding: 8px;">Amount</th>
+                <th style="padding: 8px;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="expenses-list-tbody">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 6. ADD MENU PRODUCT FORM -->
+      <section id="section-products" class="rajasthani-card" style="padding: 22px;">
+        <h2 style="color: var(--coffee); font-size: 1.3rem; margin-bottom: 15px;">Add New Menu Item</h2>
+        
+        <form id="add-product-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px;">
+          <div class="form-group" style="margin: 0;">
+            <label>Product Name</label>
+            <input type="text" id="prod-name" class="form-control" required placeholder="e.g. Masala Bun Maska">
+          </div>
+          <div class="form-group" style="margin: 0;">
+            <label>Category</label>
+            <select id="prod-category" class="form-control">
+              <option value="Chai & Coffee">Chai & Coffee</option>
+              <option value="Patties">Patties</option>
+              <option value="Burgers">Burgers</option>
+              <option value="Pizza">Pizza</option>
+              <option value="Sandwich">Sandwich</option>
+              <option value="French Fries">French Fries</option>
+              <option value="Cold Drinks">Cold Drinks</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin: 0;">
+            <label>Price (₹)</label>
+            <input type="number" id="prod-price" class="form-control" required placeholder="50">
+          </div>
+          <div class="form-group" style="margin: 0;">
+            <label>Image URL</label>
+            <input type="url" id="prod-img" class="form-control" placeholder="https://images.unsplash.com/...">
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1; margin: 0;">
+            <label>Short Description</label>
+            <input type="text" id="prod-desc" class="form-control" required placeholder="Freshly toasted buttery bun infused with spices.">
+          </div>
+          <div style="grid-column: 1 / -1; display: flex; gap: 20px; align-items: center;">
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+              <input type="checkbox" id="prod-veg" checked> Veg Item
+            </label>
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+              <input type="checkbox" id="prod-popular"> Popular Badge
+            </label>
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <button type="submit" class="btn-primary" style="padding: 10px 24px;">Publish Product to Website</button>
+          </div>
+        </form>
+      </section>
+
+    </main>
+  </div>
+
+  <script type="module" src="admin.js"></script>
+</body>
+</html>
