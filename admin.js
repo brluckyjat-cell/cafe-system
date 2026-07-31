@@ -7,11 +7,13 @@ let knownOrderIds = new Set();
 let pageLoadTime = Date.now();
 let isAudioUnlocked = false;
 
-// 3-Second High Quality Ringtone Audio with Continuous Looping
+const CURRENT_MENU_VER = "v2_the_cafe";
+
 const notificationAudio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
-notificationAudio.loop = true; // Continuous loop until accepted
+notificationAudio.loop = true;
 
 document.addEventListener("DOMContentLoaded", () => {
+  forceUpdateMenuIfNewVersion();
   setupAdminAuth();
   checkSession();
   startClock();
@@ -19,7 +21,36 @@ document.addEventListener("DOMContentLoaded", () => {
   bindGlobalUnlockEvents();
 });
 
-// Unlock Audio Context on User Gesture (Mobile Browser Requirement)
+// Force update menu data when new menu version is deployed
+function forceUpdateMenuIfNewVersion() {
+  if (localStorage.getItem("ccc_menu_version") !== CURRENT_MENU_VER) {
+    localStorage.removeItem("ccc_products");
+    localStorage.removeItem("ccc_categories");
+    localStorage.setItem("ccc_menu_version", CURRENT_MENU_VER);
+
+    if (typeof DEFAULT_MENU_ITEMS !== 'undefined') {
+      adminProducts = DEFAULT_MENU_ITEMS;
+      localStorage.setItem("ccc_products", JSON.stringify(adminProducts));
+      
+      try {
+        const seedObj = {};
+        DEFAULT_MENU_ITEMS.forEach(item => { seedObj[item.id] = item; });
+        db.ref("products").set(seedObj);
+      } catch(e){}
+    }
+
+    if (typeof DEFAULT_CATEGORIES !== 'undefined') {
+      adminCategories = DEFAULT_CATEGORIES;
+      localStorage.setItem("ccc_categories", JSON.stringify(adminCategories));
+      
+      try {
+        db.ref("categories").set(DEFAULT_CATEGORIES);
+      } catch(e){}
+    }
+  }
+}
+
+// Unlock Audio Context
 function unlockAudioSystem() {
   if (!isAudioUnlocked) {
     notificationAudio.play().then(() => {
@@ -41,7 +72,7 @@ function bindGlobalUnlockEvents() {
   document.addEventListener('touchstart', unlocker);
 }
 
-// Single Instance Audio Loop Evaluator (Prevents Multiple Overlapping Tones)
+// Single Instance Audio Loop Evaluator
 function evaluateAudioLoop() {
   const hasUnacceptedOrder = adminOrders.some(o => o.status === 'Received');
   
@@ -52,7 +83,7 @@ function evaluateAudioLoop() {
   }
 }
 
-// Play Single Continuous Looping Tone
+// Play Tone
 function playOrderNotificationTone() {
   try {
     if (notificationAudio.paused) {
@@ -67,7 +98,7 @@ function playOrderNotificationTone() {
   }
 }
 
-// Stop Notification Tone
+// Stop Tone
 function stopOrderNotificationTone() {
   try {
     notificationAudio.pause();
@@ -329,7 +360,7 @@ function updateOrderStatus(orderId, newStatus) {
     renderOrdersStream();
     calculateKPIs();
     calculateAnalytics();
-    evaluateAudioLoop(); // Re-evaluates sound loop state after accepting
+    evaluateAudioLoop();
   }
   try { db.ref("orders/" + orderId).update({ status: newStatus }); } catch(e){}
 }
@@ -601,7 +632,7 @@ function setupAdminForms() {
       const inStockVal = existingProd ? (existingProd.inStock !== undefined ? Boolean(existingProd.inStock) : true) : true;
 
       const titleVal = (document.getElementById("prod-title").value || "").trim();
-      const catVal = document.getElementById("prod-category").value || "Chai";
+      const catVal = document.getElementById("prod-category").value || "Tea Special";
       const priceVal = Number(document.getElementById("prod-price").value) || 0;
       const descVal = (document.getElementById("prod-desc").value || "").trim();
       const isVegVal = document.getElementById("prod-veg").value === "true";
@@ -655,4 +686,3 @@ function setupAdminForms() {
     });
   }
 }
-
