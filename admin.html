@@ -92,7 +92,7 @@
 
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
         <h3 class="royal-font" style="color:var(--royal-gold);">Incoming Orders Stream</h3>
-        <span style="font-size:0.8rem; color:#A39485;">Real-Time Firebase Sync</span>
+        <span style="font-size:0.8rem; color:#A39485;"><i class="fa-solid fa-bolt" style="color:var(--royal-gold);"></i> Instant Live Sync</span>
       </div>
 
       <div class="order-stream-grid" id="orders-stream-container">
@@ -219,7 +219,7 @@
     </section>
   </div>
 
-  <!-- ADD / EDIT PRODUCT MODAL -->
+  <!-- ADD / EDIT PRODUCT MODAL (No Image Field Needed) -->
   <div class="modal-overlay" id="product-modal">
     <div class="modal-card">
       <div class="modal-header">
@@ -240,10 +240,6 @@
           <div class="form-group">
             <label class="form-label">Price (₹) *</label>
             <input type="number" id="prod-price" class="form-control" min="1" placeholder="e.g. 20" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Image URL *</label>
-            <input type="text" id="prod-image" class="form-control" placeholder="Paste image link" required>
           </div>
           <div class="form-group">
             <label class="form-label">Description</label>
