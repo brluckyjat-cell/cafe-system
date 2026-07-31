@@ -1,16 +1,123 @@
-
 // Admin Dashboard Logic (admin.js)
 
 let adminOrders = [];
 let adminProducts = [];
 let adminCategories = [];
+let knownOrderIds = new Set();
+let isAudioInitialized = false;
 
 document.addEventListener("DOMContentLoaded", () => {
   setupAdminAuth();
   checkSession();
   startClock();
   setupAdminForms();
+  setupRealtimeAutoSync();
 });
+
+// Real-time Storage Listener for instant multi-tab sync without page refresh
+function setupRealtimeAutoSync() {
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'ccc_orders' || e.key === 'ccc_products' || e.key === 'ccc_categories') {
+      syncDataFromLocal();
+    }
+  });
+
+  // Polling fallback every 2 seconds
+  setInterval(() => {
+    syncDataFromLocal();
+  }, 2000);
+}
+
+function syncDataFromLocal() {
+  try {
+    const savedOrders = JSON.parse(localStorage.getItem("ccc_orders")) || [];
+    
+    // Check for NEW incoming order to play 3-sec sound
+    if (knownOrderIds.size > 0) {
+      const hasNewOrder = savedOrders.some(o => !knownOrderIds.has(o.orderId));
+      if (hasNewOrder) {
+        playOrderNotificationTone();
+      }
+    }
+    
+    savedOrders.forEach(o => knownOrderIds.add(o.orderId));
+    adminOrders = savedOrders;
+    renderOrdersStream();
+    calculateKPIs();
+    calculateAnalytics();
+  } catch(e){}
+}
+
+// 3-Second Royal Notification Tone Generator (Web Audio Synthesizer)
+function playOrderNotificationTone() {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const now = ctx.currentTime;
+
+    // Chime Note 1
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(659.25, now);
+    gain1.gain.setValueAtTime(0.3, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 1.0);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(now);
+    osc1.stop(now + 1.0);
+
+    // Chime Note 2
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(830.61, now + 0.4);
+    gain2.gain.setValueAtTime(0.4, now + 0.4);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 2.0);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(now + 0.4);
+    osc2.stop(now + 2.0);
+
+    // Chime Note 3 (Holds sound till 3 Seconds)
+    const osc3 = ctx.createOscillator();
+    const gain3 = ctx.createGain();
+    osc3.type = 'sine';
+    osc3.frequency.setValueAtTime(987.77, now + 0.8);
+    gain3.gain.setValueAtTime(0.5, now + 0.8);
+    gain3.gain.exponentialRampToValueAtTime(0.001, now + 3.0);
+    osc3.connect(gain3);
+    gain3.connect(ctx.destination);
+    osc3.start(now + 0.8);
+    osc3.stop(now + 3.0);
+  } catch(e) {}
+}
+
+// Smart Image Auto-Detector based on Item Title & Category
+function autoDetectProductImage(title, category) {
+  const text = (title + " " + category).toLowerCase();
+
+  if (text.includes("chai") || text.includes("tea") || text.includes("kulhad")) {
+    return "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=600&q=80";
+  } else if (text.includes("coffee") || text.includes("latte") || text.includes("cappuccino")) {
+    return "https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=600&q=80";
+  } else if (text.includes("pizza") || text.includes("paneer")) {
+    return "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=600&q=80";
+  } else if (text.includes("burger")) {
+    return "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80";
+  } else if (text.includes("patty") || text.includes("patties") || text.includes("puff") || text.includes("samosa")) {
+    return "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=600&q=80";
+  } else if (text.includes("dessert") || text.includes("kulfi") || text.includes("falooda") || text.includes("sweet") || text.includes("ice cream")) {
+    return "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=600&q=80";
+  } else if (text.includes("drink") || text.includes("soda") || text.includes("lime") || text.includes("shake") || text.includes("beverage") || text.includes("cold")) {
+    return "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=80";
+  } else if (text.includes("cigarette") || text.includes("smoke")) {
+    return "https://images.unsplash.com/photo-1527061011665-3652c757a4d4?auto=format&fit=crop&w=600&q=80";
+  }
+
+  return "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=600&q=80";
+}
 
 // Clock
 function startClock() {
@@ -85,18 +192,21 @@ function initAdminDashboard() {
 
 // 1. Live Orders Sync
 function listenToLiveOrders() {
-  try {
-    const savedOrders = JSON.parse(localStorage.getItem("ccc_orders")) || [];
-    adminOrders = savedOrders;
-    renderOrdersStream();
-    calculateKPIs();
-    calculateAnalytics();
-  } catch(e){}
+  syncDataFromLocal();
 
   db.ref("orders").on("value", (snapshot) => {
     if (snapshot.exists()) {
       const data = snapshot.val();
-      adminOrders = Object.keys(data).map(key => ({ ...data[key] }));
+      const updatedOrders = Object.keys(data).map(key => ({ ...data[key] }));
+      
+      // Check for new order for sound
+      if (knownOrderIds.size > 0) {
+        const hasNew = updatedOrders.some(o => !knownOrderIds.has(o.orderId));
+        if (hasNew) playOrderNotificationTone();
+      }
+      
+      updatedOrders.forEach(o => knownOrderIds.add(o.orderId));
+      adminOrders = updatedOrders;
       localStorage.setItem("ccc_orders", JSON.stringify(adminOrders));
       renderOrdersStream();
       calculateKPIs();
@@ -228,7 +338,7 @@ function renderAdminProductsTable() {
   adminProducts.forEach(prod => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td><img src="${prod.image}" style="width:40px; height:40px; border-radius:6px; object-fit:cover;" onerror="this.src='https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=600&q=80'"></td>
+      <td><img src="${prod.image}" style="width:40px; height:40px; border-radius:6px; object-fit:cover;"></td>
       <td style="font-weight:600; color:#FFF;">${prod.title}</td>
       <td>${prod.category}</td>
       <td style="color:var(--royal-gold); font-weight:700;">₹${prod.price}</td>
@@ -282,7 +392,6 @@ function editProduct(productId) {
   document.getElementById("prod-id").value = prod.id;
   document.getElementById("prod-title").value = prod.title;
   document.getElementById("prod-price").value = prod.price;
-  document.getElementById("prod-image").value = prod.image;
   document.getElementById("prod-desc").value = prod.description || "";
   document.getElementById("prod-veg").value = prod.isVeg ? "true" : "false";
 
@@ -463,26 +572,23 @@ function setupAdminForms() {
       const titleVal = (document.getElementById("prod-title").value || "").trim();
       const catVal = document.getElementById("prod-category").value || "Chai";
       const priceVal = Number(document.getElementById("prod-price").value) || 0;
-      let imgVal = (document.getElementById("prod-image").value || "").trim();
       const descVal = (document.getElementById("prod-desc").value || "").trim();
       const isVegVal = document.getElementById("prod-veg").value === "true";
-
-      // Fallback Image if URL is empty
-      if (!imgVal || !imgVal.startsWith("http")) {
-        imgVal = "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=600&q=80";
-      }
 
       if (!titleVal || priceVal <= 0) {
         alert("Please enter a valid title and price!");
         return;
       }
 
+      // Auto Assign Image using Smart Auto-Detector
+      const autoImage = autoDetectProductImage(titleVal, catVal);
+
       const newProd = {
         id: id,
         title: titleVal,
         category: catVal,
         price: priceVal,
-        image: imgVal,
+        image: autoImage,
         description: descVal,
         isVeg: isVegVal,
         inStock: inStockVal
@@ -540,3 +646,4 @@ function setupAdminForms() {
     });
   }
 }
+
