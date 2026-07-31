@@ -1,161 +1,102 @@
-// Admin Dashboard Logic (admin.js)
+// Admin Dashboard Logic (admin.js) - Royal Rajasthani Theme
 
 let adminOrders = [];
 let adminProducts = [];
 let adminCategories = [];
 let knownOrderIds = new Set();
-let isInitialLoadComplete = false;
-let audioCtx = null;
+let pageLoadTime = Date.now();
+let isAudioUnlocked = false;
+
+// 3-Second High Quality Chime Audio File
+const notificationAudio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
 
 document.addEventListener("DOMContentLoaded", () => {
   setupAdminAuth();
   checkSession();
   startClock();
   setupAdminForms();
-  setupRealtimeAutoSync();
-  setupAudioUnlocker();
+  bindGlobalUnlockEvents();
 });
 
-// Unlock Browser Audio Policy on User Gesture
-function setupAudioUnlocker() {
-  const unlockAudio = () => {
-    if (!audioCtx) {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (AudioContext) audioCtx = new AudioContext();
-    }
-    if (audioCtx && audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
-  };
-
-  document.addEventListener('click', unlockAudio, { once: true });
-  document.addEventListener('touchstart', unlockAudio, { once: true });
-}
-
-// 3-Second Royal Notification Tone Generator
-function playOrderNotificationTone() {
-  try {
-    if (!audioCtx) {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (AudioContext) audioCtx = new AudioContext();
-    }
-    if (audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
-
-    const now = audioCtx.currentTime;
-
-    // Chime Note 1
-    const osc1 = audioCtx.createOscillator();
-    const gain1 = audioCtx.createGain();
-    osc1.type = 'sine';
-    osc1.frequency.setValueAtTime(659.25, now);
-    gain1.gain.setValueAtTime(0.5, now);
-    gain1.gain.exponentialRampToValueAtTime(0.001, now + 1.0);
-    osc1.connect(gain1);
-    gain1.connect(audioCtx.destination);
-    osc1.start(now);
-    osc1.stop(now + 1.0);
-
-    // Chime Note 2
-    const osc2 = audioCtx.createOscillator();
-    const gain2 = audioCtx.createGain();
-    osc2.type = 'sine';
-    osc2.frequency.setValueAtTime(830.61, now + 0.4);
-    gain2.gain.setValueAtTime(0.6, now + 0.4);
-    gain2.gain.exponentialRampToValueAtTime(0.001, now + 2.0);
-    osc2.connect(gain2);
-    gain2.connect(audioCtx.destination);
-    osc2.start(now + 0.4);
-    osc2.stop(now + 2.0);
-
-    // Chime Note 3 (Holds sound till 3 Seconds)
-    const osc3 = audioCtx.createOscillator();
-    const gain3 = audioCtx.createGain();
-    osc3.type = 'sine';
-    osc3.frequency.setValueAtTime(987.77, now + 0.8);
-    gain3.gain.setValueAtTime(0.7, now + 0.8);
-    gain3.gain.exponentialRampToValueAtTime(0.001, now + 3.0);
-    osc3.connect(gain3);
-    gain3.connect(audioCtx.destination);
-    osc3.start(now + 0.8);
-    osc3.stop(now + 3.0);
-  } catch(e) {
-    console.log("Audio unlock required", e);
+// Unlock Audio Context on User Gesture (Mobile Browser Requirement)
+function unlockAudioSystem() {
+  if (!isAudioUnlocked) {
+    notificationAudio.play().then(() => {
+      notificationAudio.pause();
+      notificationAudio.currentTime = 0;
+      isAudioUnlocked = true;
+    }).catch(e => {
+      console.log("Audio unlock waiting for user click:", e);
+    });
   }
 }
 
-// Request Browser Notification Permission
+function bindGlobalUnlockEvents() {
+  const unlocker = () => {
+    unlockAudioSystem();
+    document.removeEventListener('click', unlocker);
+    document.removeEventListener('touchstart', unlocker);
+  };
+  document.addEventListener('click', unlocker);
+  document.addEventListener('touchstart', unlocker);
+}
+
+// Play Loud 3-Second Ringtone
+function playOrderNotificationTone() {
+  try {
+    notificationAudio.currentTime = 0;
+    const playPromise = notificationAudio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        // Fallback Web Audio Synthesizer if network blocks MP3
+        playSynthesizerChime();
+      });
+    }
+  } catch(e) {
+    playSynthesizerChime();
+  }
+}
+
+// Web Audio Fallback Synthesizer
+function playSynthesizerChime() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const now = ctx.currentTime;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(587.33, now); // D5
+    osc.frequency.setValueAtTime(880, now + 0.3); // A5
+    osc.frequency.setValueAtTime(1174.66, now + 0.7); // D6
+
+    gain.gain.setValueAtTime(0.8, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 3.0);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 3.0);
+  } catch(e){}
+}
+
+// Push Banner Notification
 function requestNotificationPermission() {
   if ("Notification" in window && Notification.permission !== "granted") {
     Notification.requestPermission();
   }
 }
 
-// Trigger Mobile System Banner Notification
 function sendPushNotification(orderId, customerName) {
   if ("Notification" in window && Notification.permission === "granted") {
-    new Notification("🔔 New Order Received!", {
+    new Notification("🔔 NEW ORDER RECEIVED!", {
       body: `Order #${orderId} from ${customerName}`,
-      icon: "https://cdn-icons-png.flaticon.com/512/924/924514.png"
+      icon: "https://cdn-icons-png.flaticon.com/512/924/924514.png",
+      requireInteraction: true
     });
   }
-}
-
-// Real-time Storage Sync
-function setupRealtimeAutoSync() {
-  window.addEventListener('storage', (e) => {
-    if (e.key === 'ccc_orders') {
-      syncDataFromLocal();
-    }
-  });
-
-  setInterval(() => {
-    syncDataFromLocal();
-  }, 2000);
-}
-
-function syncDataFromLocal() {
-  try {
-    const savedOrders = JSON.parse(localStorage.getItem("ccc_orders")) || [];
-    
-    if (isInitialLoadComplete && savedOrders.length > 0) {
-      const newOrders = savedOrders.filter(o => !knownOrderIds.has(o.orderId));
-      if (newOrders.length > 0) {
-        playOrderNotificationTone();
-        sendPushNotification(newOrders[0].orderId, newOrders[0].customerName);
-      }
-    }
-
-    savedOrders.forEach(o => knownOrderIds.add(o.orderId));
-    adminOrders = savedOrders;
-    renderOrdersStream();
-    calculateKPIs();
-    calculateAnalytics();
-  } catch(e){}
-}
-
-// Smart Image Auto-Detector
-function autoDetectProductImage(title, category) {
-  const text = (title + " " + category).toLowerCase();
-
-  if (text.includes("chai") || text.includes("tea") || text.includes("kulhad")) {
-    return "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=600&q=80";
-  } else if (text.includes("coffee") || text.includes("latte") || text.includes("cappuccino")) {
-    return "https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=600&q=80";
-  } else if (text.includes("pizza") || text.includes("paneer")) {
-    return "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=600&q=80";
-  } else if (text.includes("burger")) {
-    return "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80";
-  } else if (text.includes("patty") || text.includes("patties") || text.includes("puff") || text.includes("samosa")) {
-    return "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=600&q=80";
-  } else if (text.includes("dessert") || text.includes("kulfi") || text.includes("falooda") || text.includes("sweet")) {
-    return "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=600&q=80";
-  } else if (text.includes("drink") || text.includes("soda") || text.includes("lime") || text.includes("cold")) {
-    return "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=80";
-  }
-
-  return "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=600&q=80";
 }
 
 // Clock
@@ -164,7 +105,7 @@ function startClock() {
     const el = document.getElementById("live-clock");
     if (el) {
       const now = new Date();
-      el.innerText = now.toLocaleTimeString() + " | Live Sync";
+      el.innerText = now.toLocaleTimeString() + " | Live Sync Active";
     }
   }, 1000);
 }
@@ -181,6 +122,7 @@ function setupAdminAuth() {
 
     if (email === "admin@chaiceremony.com" && password === "admin123") {
       sessionStorage.setItem("ccc_admin_auth", "true");
+      unlockAudioSystem();
       requestNotificationPermission();
       unlockAdminDashboard();
     } else {
@@ -230,33 +172,61 @@ function initAdminDashboard() {
   listenToAdminSettings();
 }
 
-// 1. Live Orders Sync
+// 1. Live Orders Listener (Instant Realtime Event Engine)
 function listenToLiveOrders() {
-  syncDataFromLocal();
+  // Initial load from Local Backup
+  try {
+    const savedOrders = JSON.parse(localStorage.getItem("ccc_orders")) || [];
+    adminOrders = savedOrders;
+    adminOrders.forEach(o => knownOrderIds.add(o.orderId));
+    renderOrdersStream();
+    calculateKPIs();
+    calculateAnalytics();
+  } catch(e){}
 
-  db.ref("orders").on("value", (snapshot) => {
-    if (snapshot.exists()) {
-      const data = snapshot.val();
-      const updatedOrders = Object.keys(data).map(key => ({ ...data[key] }));
+  // Direct Firebase Realtime Stream
+  const ordersRef = db.ref("orders");
 
-      if (isInitialLoadComplete) {
-        const newOrders = updatedOrders.filter(o => !knownOrderIds.has(o.orderId));
-        if (newOrders.length > 0) {
-          playOrderNotificationTone();
-          sendPushNotification(newOrders[0].orderId, newOrders[0].customerName);
-        }
+  // Listen for NEW incoming orders
+  ordersRef.on("child_added", (snapshot) => {
+    const order = snapshot.val();
+    if (!order || !order.orderId) return;
+
+    if (!knownOrderIds.has(order.orderId)) {
+      knownOrderIds.add(order.orderId);
+      
+      const existingIdx = adminOrders.findIndex(o => o.orderId === order.orderId);
+      if (existingIdx === -1) {
+        adminOrders.unshift(order);
+      } else {
+        adminOrders[existingIdx] = order;
       }
-
-      updatedOrders.forEach(o => knownOrderIds.add(o.orderId));
-      adminOrders = updatedOrders;
-      isInitialLoadComplete = true;
 
       localStorage.setItem("ccc_orders", JSON.stringify(adminOrders));
       renderOrdersStream();
       calculateKPIs();
       calculateAnalytics();
-    } else {
-      isInitialLoadComplete = true;
+
+      // Trigger Alert Sound & Notification if order created after page load
+      if (order.timestamp && order.timestamp > (pageLoadTime - 10000)) {
+        playOrderNotificationTone();
+        sendPushNotification(order.orderId, order.customerName || "Customer");
+      }
+    }
+  });
+
+  // Listen for Order Status Updates (Preparing, Ready, Completed)
+  ordersRef.on("child_changed", (snapshot) => {
+    const updatedOrder = snapshot.val();
+    if (!updatedOrder || !updatedOrder.orderId) return;
+
+    const idx = adminOrders.findIndex(o => o.orderId === updatedOrder.orderId);
+    if (idx !== -1) {
+      adminOrders[idx] = updatedOrder;
+      localStorage.setItem("ccc_orders", JSON.stringify(adminOrders));
+      renderOrdersStream();
+      calculateKPIs();
+      calculateAnalytics();
     }
   });
 }
@@ -350,6 +320,29 @@ function calculateKPIs() {
   if (countEl) countEl.innerText = todayOrders.length;
   if (pendingEl) pendingEl.innerText = pendingCount;
   if (completedEl) completedEl.innerText = completedCount;
+}
+
+// Smart Image Auto-Detector
+function autoDetectProductImage(title, category) {
+  const text = (title + " " + category).toLowerCase();
+
+  if (text.includes("chai") || text.includes("tea") || text.includes("kulhad")) {
+    return "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=600&q=80";
+  } else if (text.includes("coffee") || text.includes("latte") || text.includes("cappuccino")) {
+    return "https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=600&q=80";
+  } else if (text.includes("pizza") || text.includes("paneer")) {
+    return "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=600&q=80";
+  } else if (text.includes("burger")) {
+    return "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80";
+  } else if (text.includes("patty") || text.includes("patties") || text.includes("puff") || text.includes("samosa")) {
+    return "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=600&q=80";
+  } else if (text.includes("dessert") || text.includes("kulfi") || text.includes("falooda") || text.includes("sweet")) {
+    return "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=600&q=80";
+  } else if (text.includes("drink") || text.includes("soda") || text.includes("lime") || text.includes("cold")) {
+    return "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=80";
+  }
+
+  return "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=600&q=80";
 }
 
 // 2. Admin Products CRUD
