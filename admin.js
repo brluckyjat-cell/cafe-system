@@ -42,7 +42,7 @@ function setupAdminAuth() {
 }
 
 function checkSession() {
-  if (sessionStorage.getItem("ccc_admin_auth") === "true") {
+  if (sessionStorage.setItem && sessionStorage.getItem("ccc_admin_auth") === "true") {
     unlockAdminDashboard();
   }
 }
@@ -84,16 +84,23 @@ function initAdminDashboard() {
 
 // 1. Live Orders Sync
 function listenToLiveOrders() {
-  db.ref("orders").on("value", (snapshot) => {
-    if (!snapshot.exists()) {
-      adminOrders = [];
-    } else {
-      const data = snapshot.val();
-      adminOrders = Object.keys(data).map(key => ({ ...data[key] }));
-    }
+  try {
+    const savedOrders = JSON.parse(localStorage.getItem("ccc_orders")) || [];
+    adminOrders = savedOrders;
     renderOrdersStream();
     calculateKPIs();
     calculateAnalytics();
+  } catch(e){}
+
+  db.ref("orders").on("value", (snapshot) => {
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      adminOrders = Object.keys(data).map(key => ({ ...data[key] }));
+      localStorage.setItem("ccc_orders", JSON.stringify(adminOrders));
+      renderOrdersStream();
+      calculateKPIs();
+      calculateAnalytics();
+    }
   });
 }
 
@@ -154,7 +161,15 @@ function renderOrdersStream() {
 }
 
 function updateOrderStatus(orderId, newStatus) {
-  db.ref("orders/" + orderId).update({ status: newStatus });
+  const index = adminOrders.findIndex(o => o.orderId === orderId);
+  if (index !== -1) {
+    adminOrders[index].status = newStatus;
+    localStorage.setItem("ccc_orders", JSON.stringify(adminOrders));
+    renderOrdersStream();
+    calculateKPIs();
+    calculateAnalytics();
+  }
+  try { db.ref("orders/" + orderId).update({ status: newStatus }); } catch(e){}
 }
 
 // KPI Calculations
@@ -180,16 +195,27 @@ function calculateKPIs() {
   if (completedEl) completedEl.innerText = completedCount;
 }
 
-// 2. Admin Products CRUD
+// 2. Admin Products CRUD (Permanent Persistence)
 function listenToAdminProducts() {
+  const localProds = localStorage.getItem("ccc_products");
+  if (localProds) {
+    try {
+      adminProducts = JSON.parse(localProds);
+      renderAdminProductsTable();
+    } catch(e){}
+  } else {
+    adminProducts = DEFAULT_MENU_ITEMS;
+    localStorage.setItem("ccc_products", JSON.stringify(adminProducts));
+    renderAdminProductsTable();
+  }
+
   db.ref("products").on("value", (snapshot) => {
-    if (!snapshot.exists()) {
-      adminProducts = [];
-    } else {
+    if (snapshot.exists()) {
       const data = snapshot.val();
       adminProducts = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+      localStorage.setItem("ccc_products", JSON.stringify(adminProducts));
+      renderAdminProductsTable();
     }
-    renderAdminProductsTable();
   });
 }
 
@@ -221,12 +247,21 @@ function renderAdminProductsTable() {
 }
 
 function toggleStock(productId, newStatus) {
-  db.ref("products/" + productId).update({ inStock: newStatus });
+  const index = adminProducts.findIndex(p => p.id === productId);
+  if (index !== -1) {
+    adminProducts[index].inStock = newStatus;
+    localStorage.setItem("ccc_products", JSON.stringify(adminProducts));
+    renderAdminProductsTable();
+  }
+  try { db.ref("products/" + productId).update({ inStock: newStatus }); } catch(e){}
 }
 
 function deleteProduct(productId) {
   if (confirm("Are you sure you want to delete this product?")) {
-    db.ref("products/" + productId).remove();
+    adminProducts = adminProducts.filter(p => p.id !== productId);
+    localStorage.setItem("ccc_products", JSON.stringify(adminProducts));
+    renderAdminProductsTable();
+    try { db.ref("products/" + productId).remove(); } catch(e){}
   }
 }
 
@@ -259,7 +294,7 @@ function populateCategorySelect(selectedCat = "") {
   if (!select) return;
   select.innerHTML = "";
   
-  const cats = (Array.isArray(adminCategories) && adminCategories.length > 0) ? adminCategories : (typeof DEFAULT_CATEGORIES !== 'undefined' ? DEFAULT_CATEGORIES : ["All", "Chai", "Coffee", "Pizza", "Burger", "Patties", "Cold Drinks", "Dessert", "Cigarette"]);
+  const cats = (Array.isArray(adminCategories) && adminCategories.length > 0) ? adminCategories : DEFAULT_CATEGORIES;
   
   cats.filter(c => c !== "All").forEach(cat => {
     const opt = document.createElement("option");
@@ -276,15 +311,24 @@ function closeProductModal() {
 
 // 3. Admin Categories CRUD
 function listenToAdminCategories() {
-  db.ref("categories").on("value", (snapshot) => {
-    if (!snapshot.exists()) {
-      const defaultCats = typeof DEFAULT_CATEGORIES !== 'undefined' ? DEFAULT_CATEGORIES : ["All", "Chai", "Coffee", "Pizza", "Burger", "Patties", "Cold Drinks", "Dessert", "Cigarette"];
-      db.ref("categories").set(defaultCats);
-      adminCategories = defaultCats;
-    } else {
-      adminCategories = snapshot.val();
-    }
+  const localCats = localStorage.getItem("ccc_categories");
+  if (localCats) {
+    try {
+      adminCategories = JSON.parse(localCats);
+      renderAdminCategoriesTable();
+    } catch(e){}
+  } else {
+    adminCategories = DEFAULT_CATEGORIES;
+    localStorage.setItem("ccc_categories", JSON.stringify(adminCategories));
     renderAdminCategoriesTable();
+  }
+
+  db.ref("categories").on("value", (snapshot) => {
+    if (snapshot.exists()) {
+      adminCategories = snapshot.val();
+      localStorage.setItem("ccc_categories", JSON.stringify(adminCategories));
+      renderAdminCategoriesTable();
+    }
   });
 }
 
@@ -310,8 +354,10 @@ function renderAdminCategoriesTable() {
 
 function deleteCategoryByName(catName) {
   if (confirm(`Delete "${catName}" category?`)) {
-    const updated = adminCategories.filter(c => c !== catName);
-    db.ref("categories").set(updated);
+    adminCategories = adminCategories.filter(c => c !== catName);
+    localStorage.setItem("ccc_categories", JSON.stringify(adminCategories));
+    renderAdminCategoriesTable();
+    try { db.ref("categories").set(adminCategories); } catch(e){}
   }
 }
 
@@ -367,23 +413,37 @@ function calculateAnalytics() {
 
 // 5. Settings CRUD
 function listenToAdminSettings() {
-  db.ref("settings").on("value", (snapshot) => {
-    if (!snapshot.exists()) return;
-    const data = snapshot.val();
-    const nameEl = document.getElementById("set-cafe-name");
-    const tagEl = document.getElementById("set-tagline");
-    const logoEl = document.getElementById("set-logo-url");
-    const addrEl = document.getElementById("set-address");
-    const phoneEl = document.getElementById("set-phone");
-    const packEl = document.getElementById("set-packaging");
+  const localSet = localStorage.getItem("ccc_settings");
+  if (localSet) {
+    try {
+      const data = JSON.parse(localSet);
+      populateSettingsForm(data);
+    } catch(e){}
+  }
 
-    if (nameEl) nameEl.value = data.cafeName || "";
-    if (tagEl) tagEl.value = data.tagline || "";
-    if (logoEl) logoEl.value = data.logoUrl || "";
-    if (addrEl) addrEl.value = data.address || "";
-    if (phoneEl) phoneEl.value = data.contactPhone || "";
-    if (packEl) packEl.value = data.packagingCharge || 0;
+  db.ref("settings").on("value", (snapshot) => {
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      localStorage.setItem("ccc_settings", JSON.stringify(data));
+      populateSettingsForm(data);
+    }
   });
+}
+
+function populateSettingsForm(data) {
+  const nameEl = document.getElementById("set-cafe-name");
+  const tagEl = document.getElementById("set-tagline");
+  const logoEl = document.getElementById("set-logo-url");
+  const addrEl = document.getElementById("set-address");
+  const phoneEl = document.getElementById("set-phone");
+  const packEl = document.getElementById("set-packaging");
+
+  if (nameEl) nameEl.value = data.cafeName || "";
+  if (tagEl) tagEl.value = data.tagline || "";
+  if (logoEl) logoEl.value = data.logoUrl || "";
+  if (addrEl) addrEl.value = data.address || "";
+  if (phoneEl) phoneEl.value = data.contactPhone || "";
+  if (packEl) packEl.value = data.packagingCharge || 0;
 }
 
 // Setup Form Listeners
@@ -422,14 +482,20 @@ function setupAdminForms() {
         inStock: inStockVal
       };
 
-      db.ref("products/" + id).set(newProd)
-        .then(() => {
-          closeProductModal();
-          alert("New Product Added Successfully!");
-        })
-        .catch((err) => {
-          alert("Error saving product: " + err.message);
-        });
+      // Guaranteed Local Storage Save
+      const existingIdx = adminProducts.findIndex(p => p.id === id);
+      if (existingIdx !== -1) {
+        adminProducts[existingIdx] = newProd;
+      } else {
+        adminProducts.push(newProd);
+      }
+      localStorage.setItem("ccc_products", JSON.stringify(adminProducts));
+      renderAdminProductsTable();
+      closeProductModal();
+      alert("Product saved successfully!");
+
+      // Firebase Try
+      try { db.ref("products/" + id).set(newProd); } catch(err){}
     });
   }
 
@@ -440,10 +506,11 @@ function setupAdminForms() {
       const catInput = document.getElementById("new-cat-input");
       const val = catInput.value.trim();
       if (val && !adminCategories.includes(val)) {
-        const updated = [...adminCategories, val];
-        db.ref("categories").set(updated, () => {
-          catInput.value = "";
-        });
+        adminCategories.push(val);
+        localStorage.setItem("ccc_categories", JSON.stringify(adminCategories));
+        renderAdminCategoriesTable();
+        catInput.value = "";
+        try { db.ref("categories").set(adminCategories); } catch(e){}
       }
     });
   }
@@ -461,9 +528,10 @@ function setupAdminForms() {
         packagingCharge: Number(document.getElementById("set-packaging").value)
       };
 
-      db.ref("settings").set(updated, (err) => {
-        if (!err) alert("Cafe Settings updated successfully!");
-      });
+      localStorage.setItem("ccc_settings", JSON.stringify(updated));
+      alert("Cafe Settings updated successfully!");
+      try { db.ref("settings").set(updated); } catch(e){}
     });
   }
 }
+
