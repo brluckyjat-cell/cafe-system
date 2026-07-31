@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chai Ceremony Cafe | Royal Rajasthani Experience</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="responsive.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="top-bar-info">
+      <span>📍 Jaipur, Rajasthan</span>
+      <span>⏰ Open: 8:00 AM - 11:00 PM</span>
+    </div>
+    <div class="top-bar-phone">
+      📞 Orders: +91 98290 00000
+    </div>
+  </div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="logo-container">
+      <div class="logo-icon">☕</div>
+      <div class="brand-title logo-text">CHAI CEREMONY</div>
+    </div>
+    <ul class="nav-links">
+      <li><a href="index.html" class="active">Home</a></li>
+      <li><a href="menu.html">Menu</a></li>
+      <li><a href="about.html">About Us</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <button class="cart-icon-btn" id="cart-toggle-btn">
+      🛒 Cart <span class="cart-badge" id="cart-count">0</span>
+    </button>
+  </nav>
+
+  <!-- Hero Section Banner -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <div class="hero-subtitle">Royal Rajasthani Heritage</div>
+      <h1 class="hero-title">Ek Chai, Rajasthan Ki Yaad</h1>
+      <p class="hero-desc">Experience authentic chai brewed in clay kulhads with premium artisanal cafe food.</p>
+      <a href="menu.html" class="btn-primary">Order Fresh Now</a>
+    </div>
+  </section>
+
+  <!-- Menu Search & Filter Controls -->
+  <div class="menu-controls">
+    <div class="search-wrapper">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="product-search" class="search-input" placeholder="Search Chai, Patties, Burgers, Pizza...">
+    </div>
+
+    <div class="category-scroll">
+      <button class="category-chip active" onclick="filterCategory('All', this)">All Items</button>
+      <button class="category-chip" onclick="filterCategory('Chai & Coffee', this)">Chai & Coffee</button>
+      <button class="category-chip" onclick="filterCategory('Patties', this)">Patties</button>
+      <button class="category-chip" onclick="filterCategory('Burgers', this)">Burgers</button>
+      <button class="category-chip" onclick="filterCategory('Pizza', this)">Pizza</button>
+      <button class="category-chip" onclick="filterCategory('Sandwich', this)">Sandwich</button>
+      <button class="category-chip" onclick="filterCategory('French Fries', this)">French Fries</button>
+      <button class="category-chip" onclick="filterCategory('Cold Drinks', this)">Cold Drinks</button>
+    </div>
+  </div>
+
+  <!-- Main Dynamic Product Grid -->
+  <main class="product-grid" id="products-grid">
+    <!-- Populated dynamically via app.js -->
+  </main>
+
+  <!-- Floating Quick Action Buttons -->
+  <div class="floating-actions">
+    <a href="https://wa.me/919829000000" target="_blank" class="float-btn float-whatsapp" title="WhatsApp Us">💬</a>
+    <a href="tel:+919829000000" class="float-btn float-call" title="Call Cafe">📞</a>
+  </div>
+
+  <!-- Slide Drawer Cart Overlay & Panel -->
+  <div class="cart-drawer-overlay" id="cart-overlay"></div>
+  <aside class="cart-drawer" id="cart-drawer">
+    <div class="cart-header">
+      <h2>Your Royal Order</h2>
+      <button class="close-drawer" id="close-cart-btn">&times;</button>
+    </div>
+    <div class="cart-body" id="cart-items-container">
+      <!-- Dynamic cart items list -->
+    </div>
+    <div class="cart-footer">
+      <div class="cart-total-row">
+        <span>Total Payable:</span>
+        <span id="cart-total-amount">₹0</span>
+      </div>
+      <button class="btn-primary" style="width: 100%; text-align: center;" onclick="openCheckoutModal()">Proceed to Checkout</button>
+    </div>
+  </aside>
+
+  <!-- Checkout Modal Dialog -->
+  <div class="modal-overlay" id="checkout-modal">
+    <div class="modal-content rajasthani-card">
+      <h2>Checkout Details</h2>
+      <form onsubmit="processOrder(event)">
+        <div class="form-group" style="margin-top: 15px;">
+          <label>Your Name</label>
+          <input type="text" id="cust-name" class="form-control" required placeholder="e.g. Vikram Singh">
+        </div>
+        <div class="form-group">
+          <label>Indian Mobile Number</label>
+          <input type="tel" id="cust-phone" class="form-control" required placeholder="10-digit mobile number">
+        </div>
+        <div class="form-group">
+          <label>Order Type</label>
+          <select id="order-type" class="form-control">
+            <option value="Table">Dine In (Table)</option>
+            <option value="Parcel">Takeaway / Parcel</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Table Number (If Dine In)</label>
+          <input type="text" id="table-no" class="form-control" placeholder="e.g. Table 4">
+        </div>
+        <div class="form-group">
+          <label>Payment Method</label>
+          <select id="payment-method" class="form-control">
+            <option value="UPI">UPI / QR Code</option>
+            <option value="Cash">Cash at Counter</option>
+            <option value="Card">Card Reader</option>
+          </select>
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%; margin-top:10px;">Place Order Now</button>
+        <button type="button" class="btn-primary" style="width:100%; margin-top:10px; background:var(--coffee);" onclick="closeCheckoutModal()">Cancel</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Holder -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
