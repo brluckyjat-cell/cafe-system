@@ -6,9 +6,11 @@ let adminCategories = [];
 let knownOrderIds = new Set();
 let pageLoadTime = Date.now();
 let isAudioUnlocked = false;
+let wakeLock = null;
 
 const CURRENT_MENU_VER = "v2_the_cafe";
 
+// 3-Second High Quality Ringtone Audio with Continuous Looping
 const notificationAudio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
 notificationAudio.loop = true;
 
@@ -19,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
   startClock();
   setupAdminForms();
   bindGlobalUnlockEvents();
+  setupBackgroundKeepAlive();
 });
 
 // Force update menu data when new menu version is deployed
@@ -50,7 +53,47 @@ function forceUpdateMenuIfNewVersion() {
   }
 }
 
-// Unlock Audio Context
+// Background Anti-Sleep & Wake Lock Engine
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+    }
+  } catch (err) {}
+}
+
+function setupBackgroundKeepAlive() {
+  // Page Visibility API Handler (Triggers instantly when tab comes from background to foreground)
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      requestWakeLock();
+      
+      // Auto-reconnect Firebase Cloud
+      try {
+        db.goOnline();
+      } catch(e){}
+
+      // Instant Resync
+      syncDataFromLocal();
+      evaluateAudioLoop();
+    }
+  });
+
+  // Firebase Realtime Reconnection Listener
+  try {
+    db.ref(".info/connected").on("value", (snap) => {
+      const liveClockEl = document.getElementById("live-clock");
+      if (snap.val() === true) {
+        if (liveClockEl) liveClockEl.style.color = "#A39485";
+      } else {
+        if (liveClockEl) liveClockEl.style.color = "#EF4444";
+        try { db.goOnline(); } catch(e){}
+      }
+    });
+  } catch(e){}
+}
+
+// Unlock Audio Context on User Touch/Click
 function unlockAudioSystem() {
   if (!isAudioUnlocked) {
     notificationAudio.play().then(() => {
@@ -65,6 +108,7 @@ function unlockAudioSystem() {
 function bindGlobalUnlockEvents() {
   const unlocker = () => {
     unlockAudioSystem();
+    requestWakeLock();
     document.removeEventListener('click', unlocker);
     document.removeEventListener('touchstart', unlocker);
   };
@@ -172,6 +216,7 @@ function setupAdminAuth() {
     if (email === "admin@chaiceremony.com" && password === "admin123") {
       sessionStorage.setItem("ccc_admin_auth", "true");
       unlockAudioSystem();
+      requestWakeLock();
       requestNotificationPermission();
       unlockAdminDashboard();
     } else {
@@ -220,8 +265,7 @@ function initAdminDashboard() {
   listenToAdminCategories();
 }
 
-// 1. Live Orders Listener
-function listenToLiveOrders() {
+function syncDataFromLocal() {
   try {
     const savedOrders = JSON.parse(localStorage.getItem("ccc_orders")) || [];
     adminOrders = savedOrders;
@@ -229,8 +273,12 @@ function listenToLiveOrders() {
     renderOrdersStream();
     calculateKPIs();
     calculateAnalytics();
-    evaluateAudioLoop();
   } catch(e){}
+}
+
+// 1. Live Orders Listener
+function listenToLiveOrders() {
+  syncDataFromLocal();
 
   const ordersRef = db.ref("orders");
 
