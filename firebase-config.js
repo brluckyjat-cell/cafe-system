@@ -1,7 +1,7 @@
-// Chai Ceremony Cafe - Firebase Initialization & Database Reference
+
+// Chai Ceremony Cafe - Firebase Config & Hybrid Storage Helper
 
 const firebaseConfig = {
-  // Replace these with your real Firebase Console values when ready
   apiKey: "AIzaSyB_YourActualApiKeyHere_ChaiCeremony",
   authDomain: "chai-ceremony-cafe.firebaseapp.com",
   databaseURL: "https://chai-ceremony-cafe-default-rtdb.firebaseio.com",
